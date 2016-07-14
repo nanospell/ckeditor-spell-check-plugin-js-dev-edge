@@ -1,0 +1,27 @@
+{
+  "name": "ckeditor-spell-check-plugin-js-dev-edge",
+  "version": "0.0.1",
+  "description": "Nanospell plugin for ckeditor ",
+  "main": "bender server run",
+  "scripts": {
+    "test": "bender server run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caffodian/ckeditor-spell-check-plugin-js-dev-edge.git"
+  },
+  "keywords": [
+    "spellcheck",
+    "ckeditor"
+  ],
+  "author": "",
+  "license": "SEE LICENSE IN license.txt",
+  "bugs": {
+    "url": "https://github.com/caffodian/ckeditor-spell-check-plugin-js-dev-edge/issues"
+  },
+  "homepage": "https://github.com/caffodian/ckeditor-spell-check-plugin-js-dev-edge#readme",
+  "dependencies": {
+    "benderjs": "^0.4.1",
+    "benderjs-ckeditor": "^0.1.0"
+  }
+}
