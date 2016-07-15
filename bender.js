@@ -24,7 +24,39 @@
  */
 
 var config = {
-	// put your configuration here
+    applications: {
+        ckeditor: {
+            path: '.',
+            files: [
+                'ckeditor.js'
+            ]
+        }
+    },
+
+    framework: 'yui', // use for entire project
+
+    plugins: [
+        'benderjs-yui',
+        'benderjs-jquery',
+        'benderjs-sinon',
+        'tests/_benderjs/ckeditor'
+    ],
+
+    tests: {
+        nanospell: {
+            applications: [ 'ckeditor' ],
+            basePath: 'tests/',
+            paths: [
+                'smoke/**',
+                '!**/_*/**'
+            ],
+            // Latest of the old API (1.8.3)
+            // Latest of the 1.* branch
+            // Latest of the 2.* branch
+            jQuery: [ '1.8.3', '1.11.1', '2.1.1' ]
+        }
+    }
+
 };
 
 module.exports = config;
