@@ -33,11 +33,107 @@
         learn: "Add To Personal Dictionary",
         nosuggestions: "( No Spelling Suggestions )"
     };
-    /* #0 plugin init layer */
+
+	// wordwalker definition
+
+	function WordWalker(range) {
+		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+
+		function evaluator(node) {
+			return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node);
+		}
+
+		var walker = new CKEDITOR.dom.walker(range);
+		walker.evaluator = evaluator;
+
+		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
+
+		var isWordSeparator = function (c) {
+			if (!c)
+				return true;
+			var code = c.charCodeAt(0);
+			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(c);
+		};
+
+		this.textNode = walker.next();
+		this.offset = 0;
+		this.origRange = range;
+
+		this._ = {
+			walker: walker,
+			isWordSeparator: isWordSeparator
+		}
+	}
+
+	WordWalker.prototype = {
+		getOffsetToNextNonSeparator: function (text, startIndex) {
+			var i, length;
+			length = text.length;
+
+			for (i = startIndex + 1; i < length; i++) {
+				if (!this._.isWordSeparator(text[i])) {
+					break;
+				}
+			}
+
+			return i;
+
+		},
+		getNextWord: function () {
+
+			// iterate through each of the text nodes in the walker
+			// break, store current offset, and return a range when finding a word separator
+			// until all text nodes in the walker are exhausted.
+
+			var word = '';
+			var currentTextNode = this.textNode;
+			var wordRange = this.origRange.clone();
+			var i;
+			var text;
+
+			if (currentTextNode === null) {
+				return null;
+			}
+
+			wordRange.setStart(currentTextNode, this.offset);
+
+			while (currentTextNode !== null) {
+				text = currentTextNode.getText();
+				for (i = this.offset; i < text.length; i++) {
+					if (this._.isWordSeparator(text[i])) {
+						word += text.substr(this.offset, i - this.offset);
+						wordRange.setEnd(currentTextNode, i);
+
+						this.offset = this.getOffsetToNextNonSeparator(text, i);
+
+						return {
+							word: word,
+							range: wordRange
+						}
+					}
+				}
+				word += text.substr(this.offset);
+				this.offset = 0;
+				wordRange.setEndAfter(this.textNode);
+				currentTextNode = this._.walker.next();
+
+				this.textNode = currentTextNode;
+
+			}
+			// reached the end of paragraph
+
+			return {
+				word: word,
+				range: wordRange
+			};
+
+		}
+	};
 
     CKEDITOR.plugins.add('nanospell', {
         icons: 'nanospell',
         init: function (editor) {
+			var self = this;
 
             this.addRule(editor);
 
@@ -498,105 +594,12 @@
                 return suggestionscache[word];
             }
 
-            function WordWalker(range) {
-                var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
-
-                function evaluator(node) {
-                    return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node);
-                }
-
-                var walker = new CKEDITOR.dom.walker(range);
-                walker.evaluator = evaluator;
-
-                var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
-
-                var isWordSeparator = function (c) {
-                    if (!c)
-                        return true;
-                    var code = c.charCodeAt(0);
-                    return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(c);
-                };
-
-                this.textNode = walker.next();
-                this.offset = 0;
-
-                this._ = {
-                    walker: walker,
-                    isWordSeparator: isWordSeparator
-                }
-            }
-
-            WordWalker.prototype = {
-                getOffsetToNextNonSeparator: function (text, startIndex) {
-                    var i, length;
-                    length = text.length;
-
-                    for (i = startIndex + 1; i < length; i++) {
-                        if (!this._.isWordSeparator(text[i])) {
-                            break;
-                        }
-                    }
-
-                    return i
-
-                },
-                getNextWord: function () {
-
-                    // iterate through each of the text nodes in the walker
-                    // break, store current offset, and return a range when finding a word separator
-                    // until all text nodes in the walker are exhausted.
-
-                    var word = '';
-                    var currentTextNode = this.textNode;
-                    var wordRange = editor.createRange();
-                    var i;
-                    var text;
-
-                    if (currentTextNode === null) {
-                        return null;
-                    }
-
-                    wordRange.setStart(currentTextNode, this.offset);
-
-                    while (currentTextNode !== null) {
-                        text = currentTextNode.getText();
-                        for (i = this.offset; i < text.length; i++) {
-                            if (this._.isWordSeparator(text[i])) {
-                                word += text.substr(this.offset, i - this.offset);
-                                wordRange.setEnd(currentTextNode, i);
-
-                                this.offset = this.getOffsetToNextNonSeparator(text, i);
-
-                                return {
-                                    word: word,
-                                    range: wordRange
-                                }
-                            }
-                        }
-                        word += text.substr(this.offset);
-                        this.offset = 0;
-                        wordRange.setEndAfter(this.textNode);
-                        currentTextNode = this._.walker.next();
-
-                        this.textNode = currentTextNode;
-
-                    }
-                    // reached the end of paragraph
-
-                    return {
-                        word: word,
-                        range: wordRange
-                    };
-
-                }
-            };
-
             function markTypos(node) {
                 var match;
 
                 var range = editor.createRange();
                 range.selectNodeContents(node);
-                var wordwalker = new WordWalker(range);
+                var wordwalker = new self.WordWalker(range);
 
                 var badRanges = [];
                 var matchtext;
@@ -779,8 +782,8 @@
             if (removeFormatFilter) {
                 removeFormatFilter.call(editor, removeFormatFilterTemplate);
             }
-        }
-
+        },
+		WordWalker: WordWalker
     });
 
 })();
