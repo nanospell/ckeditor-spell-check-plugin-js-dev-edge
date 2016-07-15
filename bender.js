@@ -1,6 +1,6 @@
 /**
  * Bender configuration file
- * 
+ *
  * @param {Object}   applications       Applications used in current project
  * @param {Array}    browsers           List of browsers used for testing
  * @param {Number}   captureTimeout     Timeout before which a launched browser should connect to the server
