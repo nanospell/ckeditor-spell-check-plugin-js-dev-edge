@@ -10,23 +10,28 @@ bender.editor = {
 };
 
 bender.test( {
-	getBlocksToBeMarked: function() {
+	setupSpy: function() {
 		var editor = this.editorBot.editor,
 			markTyposSpy;
 
-		markTyposSpy = sinon.spy(editor.plugins.nanospell.markTypos);
+		markTyposSpy = sinon.spy(editor.plugins.nanospell, 'markTypos');
 
-		editor.plugins.nanospell.markAllTypos(editor);
+		this.spy = markTyposSpy;
 
-		return markTyposSpy.args;
+		return markTyposSpy;
 	},
 
 	'test marking a simple paragraph': function() {
 		var bot = this.editorBot,
 			blocksToBeMarked;
+
+		this.setupSpy();
+
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
-		blocksToBeMarked = this.getBlocksToBeMarked();
+		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
+
+		blocksToBeMarked = this.spy.args;
 
 		assert.areEqual('<p>foo bar baz</p>', blocksToBeMarked[0]);
 

@@ -33,6 +33,10 @@
 		nosuggestions: "( No Spelling Suggestions )"
 	};
 
+	function cleanQuotes(word) {
+		return word.replace(/[\u2018\u2019]/g, "'");
+	};
+
 	// wordwalker definition
 
 	function WordWalker(range) {
@@ -501,7 +505,7 @@
 				}
 				for (var i = 0; i < matches.length; i++) {
 					var word = cleanQuotes(matches[i]);
-					if (!uniqueWords[word] && validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
+					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
 						if (words.length >= max) {
@@ -511,11 +515,6 @@
 				}
 				return words;
 			}
-
-			function cleanQuotes(word) {
-				return word.replace(/[\u2018\u2019]/g, "'");
-			}
-
 			function addPersonal(word) {
 				var value = localStorage.getItem('nano_spellchecker_personal');
 				if (value !== null && value !== "") {
