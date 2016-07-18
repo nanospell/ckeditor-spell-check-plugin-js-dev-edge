@@ -53,7 +53,11 @@
 		function evaluator(node) {
 			var path = new CKEDITOR.dom.elementPath( node, startNode );
 
-			return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node) && (path.block && path.block.equals(startNode));
+			return node.type == CKEDITOR.NODE_TEXT && // it is a text node
+				node.getLength() > 0 &&  // and it's not empty
+				( !node.isReadOnly() ) &&   // or read only
+				isNotBookmark(node) &&  // and isn't a fake bookmarking node
+				(path.block && path.block.equals(startNode)); // it's not nested in a deeper block from our root.
 		}
 
 		var walker = new CKEDITOR.dom.walker(range);
