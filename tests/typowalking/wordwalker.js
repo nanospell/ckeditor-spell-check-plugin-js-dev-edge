@@ -103,6 +103,25 @@ bender.test( {
 		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo'], wordsReturned);
+	},
+
+	'test walking nested list wrapped with text nodes': function() {
+		var bot = this.editorBot,
+			wordsReturned,
+			outerUnorderedList,
+			innerOrderedList;
+		bot.setHtmlWithSelection( '<ul><li>foo<ol><li>bar</li></ol>baz</li></ul>' );
+
+		outerUnorderedList = this.editor.editable().getFirst();
+
+		innerOrderedList = outerUnorderedList.getFirst().getFirst();
+
+		// this is a bug!  but pinning it for later.
+		// although we have solved the problem of inner list being walked twice,
+		// it's not smart enough yet to realize we need to add a whitespace when skipping over.
+		// we need to detect this special case and add a whitespace (harder than it sounds)
+		arrayAssert.itemsAreEqual(['foobaz'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+		arrayAssert.itemsAreEqual(['bar'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
 	}
 
 
