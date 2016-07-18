@@ -18,9 +18,10 @@ bender.test( {
 			currWordObj;
 
 		range = new CKEDITOR.dom.range( editor.document );
-		range.selectNodeContents( editor.editable() );
+		// assume there is only one block level element.
+		range.selectNodeContents( editor.editable().getFirst() );
 
-		wordwalker = new editor.plugins.nanospell.WordWalker(range, editor.editable().getFirst());
+		wordwalker = new editor.plugins.nanospell.WordWalker(range);
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			wordsReturned.push(currWordObj.word);

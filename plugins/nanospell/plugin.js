@@ -42,13 +42,8 @@
 
 	// wordwalker definition
 
-	function WordWalker(range, origNode) {
+	function WordWalker(range) {
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
-		var blockBoundary = CKEDITOR.dom.walker.blockBoundary();
-
-		function guard(node) {
-			return !(blockBoundary(node) && node.equals(origNode));
-		}
 
 		function evaluator(node) {
 			return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node);
@@ -56,7 +51,6 @@
 
 		var walker = new CKEDITOR.dom.walker(range);
 		walker.evaluator = evaluator;
-		walker.guard = guard;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
@@ -742,7 +736,7 @@
 
 			var range = editor.createRange();
 			range.selectNodeContents(node);
-			var wordwalker = new this.WordWalker(range, node);
+			var wordwalker = new this.WordWalker(range);
 
 			var badRanges = [];
 			var matchtext;
