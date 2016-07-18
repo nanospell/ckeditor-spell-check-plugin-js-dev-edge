@@ -32,6 +32,9 @@
 		learn: "Add To Personal Dictionary",
 		nosuggestions: "( No Spelling Suggestions )"
 	};
+	var spellcache = [];
+	var suggestionscache = [];
+	var ignorecache = [];
 
 	function cleanQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -137,10 +140,6 @@
 		icons: 'nanospell',
 		init: function (editor) {
 			var self = this;
-
-			this.spellcache = [];
-			this.suggestionscache = [];
-			this.ignorecache = [];
 
 			this.addRule(editor);
 
@@ -416,7 +415,7 @@
 				for (var i in words) {
 					var word = words[i];
 					if (result[word]) {
-						self.suggestionscache[word] = result[word];
+						suggestionscache[word] = result[word];
 						spellcache[word] = false;
 					} else {
 						spellcache[word] = true;
@@ -528,12 +527,12 @@
 
 			function getSuggestions(word) {
 				word = cleanQuotes(word);
-				if (self.suggestionscache[word] && self.suggestionscache[word][0]) {
+				if (suggestionscache[word] && suggestionscache[word][0]) {
 					if (suggestionscache[word][0].indexOf("*") == 0) {
 						return ["nanospell\xA0plugin\xA0developer\xA0trial ", "ckeditor-spellcheck.nanospell.com/license\xA0"];
 					}
 				}
-				return self.suggestionscache[word];
+				return suggestionscache[word];
 			}
 
 			function wrapWithTypoSpan(range) {
@@ -727,7 +726,7 @@
 			if (ignoreNumeric && /\d/.test(word)) {
 				return false;
 			}
-			if (this.ignorecache[word.toLowerCase()]) {
+			if (ignorecache[word.toLowerCase()]) {
 				return false;
 			}
 			return !this.hasPersonal(word);
@@ -749,7 +748,7 @@
 				if (!this.validWordToken(matchtext)) {
 					continue;
 				}
-				if (typeof(this.suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
+				if (typeof(suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
 					continue;
 				}
 				badRanges.push(match.range)

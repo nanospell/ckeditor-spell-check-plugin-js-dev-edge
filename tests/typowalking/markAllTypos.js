@@ -70,6 +70,54 @@ bender.test( {
 		this.assertHtml('<li>baz</li>', markedHtml[2]);
 	},
 
+	'test marking a nested list': function() {
+		var bot = this.editorBot,
+			blocksToBeMarked,
+			markedHtml;
+
+		bot.setHtmlWithSelection( '<ul><li><ol><li>foo bar baz</li></ol></li></ul>' );
+
+		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
+
+		markedHtml = this.getMarkedHtmlBlocksAsText();
+
+		this.assertHtml('<li>foo bar baz</li>', markedHtml[0]);
+	},
+
+
+	'test marking a nested multi item list': function() {
+		var bot = this.editorBot,
+			blocksToBeMarked,
+			markedHtml;
+
+		bot.setHtmlWithSelection( '<ul><li><ol><li>foo</li><li>bar baz</li></ol></li></ul>' );
+
+		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
+
+		markedHtml = this.getMarkedHtmlBlocksAsText();
+
+		this.assertHtml('<li>foo</li>', markedHtml[0]);
+		this.assertHtml('<li>bar baz</li>', markedHtml[1]);
+	},
+
+	'test marking a complex nested list': function() {
+		var bot = this.editorBot,
+			blocksToBeMarked,
+			markedHtml;
+
+		bot.setHtmlWithSelection( '<ul><li>fud<ol><li>foo</li><li>bar</li></ol></li><li>baz</li></ul>' );
+
+		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
+
+		markedHtml = this.getMarkedHtmlBlocksAsText();
+
+
+		this.assertHtml('<li>fud</li>', markedHtml[0]);
+		this.assertHtml('<li>foo</li>', markedHtml[1]);
+		this.assertHtml('<li>bar</li>', markedHtml[2]);
+		this.assertHtml('<li>baz</li>', markedHtml[3]);
+	},
+
 
 } );
 
