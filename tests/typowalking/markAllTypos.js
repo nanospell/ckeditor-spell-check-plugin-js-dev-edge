@@ -10,6 +10,9 @@ bender.editor = {
 };
 
 bender.test( {
+	assertHtml: function( expected, actual, msg ) {
+		assert.areEqual( bender.tools.fixHtml( expected ), bender.tools.fixHtml( actual ), msg );
+	},
 	setupSpy: function() {
 		var editor = this.editorBot.editor,
 			markTyposSpy;
@@ -33,9 +36,7 @@ bender.test( {
 
 		blocksToBeMarked = this.spy.args;
 
-		assert.areEqual('<p>foo bar baz</p>', blocksToBeMarked[0]);
-
-
+		this.assertHtml('<p>foo bar baz</p>', blocksToBeMarked[0][1].getOuterHtml());
 	},
 
 
