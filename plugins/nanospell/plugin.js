@@ -134,6 +134,10 @@
 		init: function (editor) {
 			var self = this;
 
+			this.spellcache = [];
+			this.suggestionscache = [];
+			this.ignorecache = [];
+
 			this.addRule(editor);
 
 			overrideCheckDirty();
@@ -179,7 +183,7 @@
 				editorHasFocus = false;
 			});
 			editor.on("instanceReady", function () {
-				if (this.settings.autostart !== false) {
+				if (self.settings.autostart !== false) {
 					start()
 				}
 			});
@@ -408,7 +412,7 @@
 				for (var i in words) {
 					var word = words[i];
 					if (result[word]) {
-						suggestionscache[word] = result[word];
+						self.suggestionscache[word] = result[word];
 						spellcache[word] = false;
 					} else {
 						spellcache[word] = true;
@@ -512,10 +516,6 @@
 				return word.replace(/[\u2018\u2019]/g, "'");
 			}
 
-			var spellcache = [];
-			var suggestionscache = [];
-			var ignorecache = [];
-
 			function addPersonal(word) {
 				var value = localStorage.getItem('nano_spellchecker_personal');
 				if (value !== null && value !== "") {
@@ -529,12 +529,12 @@
 
 			function getSuggestions(word) {
 				word = cleanQuotes(word);
-				if (suggestionscache[word] && suggestionscache[word][0]) {
+				if (self.suggestionscache[word] && self.suggestionscache[word][0]) {
 					if (suggestionscache[word][0].indexOf("*") == 0) {
 						return ["nanospell\xA0plugin\xA0developer\xA0trial ", "ckeditor-spellcheck.nanospell.com/license\xA0"];
 					}
 				}
-				return suggestionscache[word];
+				return self.suggestionscache[word];
 			}
 
 			function wrapWithTypoSpan(range) {
@@ -728,7 +728,7 @@
 			if (ignoreNumeric && /\d/.test(word)) {
 				return false;
 			}
-			if (ignorecache[word.toLowerCase()]) {
+			if (this.ignorecache[word.toLowerCase()]) {
 				return false;
 			}
 			return !this.hasPersonal(word);
@@ -747,10 +747,10 @@
 			while ((match = wordwalker.getNextWord()) != null) {
 				matchtext = match.word;
 
-				if (!validWordToken(matchtext)) {
+				if (!this.validWordToken(matchtext)) {
 					continue;
 				}
-				if (typeof(suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
+				if (typeof(this.suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
 					continue;
 				}
 				badRanges.push(match.range)
