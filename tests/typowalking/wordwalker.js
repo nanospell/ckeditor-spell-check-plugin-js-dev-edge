@@ -20,7 +20,7 @@ bender.test( {
 		range = new CKEDITOR.dom.range( editor.document );
 		range.selectNodeContents( editor.editable() );
 
-		wordwalker = new editor.plugins.nanospell.WordWalker(range);
+		wordwalker = new editor.plugins.nanospell.WordWalker(range, editor.editable().getFirst());
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			wordsReturned.push(currWordObj.word);
@@ -86,7 +86,7 @@ bender.test( {
 
 		wordsReturned = this.getWordsInEditorWithWordWalker();
 
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(['foo'], wordsReturned);
 	}
 
 
