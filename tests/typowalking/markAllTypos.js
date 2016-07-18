@@ -23,20 +23,51 @@ bender.test( {
 
 		return markTyposSpy;
 	},
+	getMarkedHtmlBlocksAsText: function() {
+		var markTyposArgs = this.spy.args,
+			i,
+			markedHtml = [];
 
+		for (i = 0; i < markTyposArgs.length; i++) {
+			markedHtml.push(markTyposArgs[i][1].getOuterHtml());
+		}
+
+		return markedHtml;
+	},
+	setUp: function() {
+		this.setupSpy();
+	},
+	tearDown: function() {
+		this.editorBot.editor.plugins.nanospell.markTypos.restore();
+	},
 	'test marking a simple paragraph': function() {
 		var bot = this.editorBot,
-			blocksToBeMarked;
-
-		this.setupSpy();
+			blocksToBeMarked,
+			markedHtml;
 
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
 		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
 
-		blocksToBeMarked = this.spy.args;
+		markedHtml = this.getMarkedHtmlBlocksAsText();
 
-		this.assertHtml('<p>foo bar baz</p>', blocksToBeMarked[0][1].getOuterHtml());
+		this.assertHtml('<p>foo bar baz</p>', markedHtml[0]);
+	},
+
+	'test marking a simple list': function() {
+		var bot = this.editorBot,
+			blocksToBeMarked,
+			markedHtml;
+
+		bot.setHtmlWithSelection( '<ol><li>foo</li><li>bar</li><li>baz</li></ol>' );
+
+		bot.editor.plugins.nanospell.markAllTypos(bot.editor);
+
+		markedHtml = this.getMarkedHtmlBlocksAsText();
+
+		this.assertHtml('<li>foo</li>', markedHtml[0]);
+		this.assertHtml('<li>bar</li>', markedHtml[1]);
+		this.assertHtml('<li>baz</li>', markedHtml[2]);
 	},
 
 
