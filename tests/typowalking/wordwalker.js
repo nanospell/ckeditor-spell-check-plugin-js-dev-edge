@@ -10,7 +10,7 @@ bender.editor = {
 };
 
 bender.test( {
-	getWordsInEditor: function() {
+	getWordsInEditorWithWordWalker: function() {
 		var editor = this.editorBot.editor,
 			range,
 			wordwalker,
@@ -34,7 +34,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -44,7 +44,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -54,7 +54,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ol><li>foo bar baz</li></ol>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -64,7 +64,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ol><li>foo</li><li>bar</li><li>baz</li></ol>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -74,7 +74,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ul><li><ol><li>foo bar baz</li></ol></li></ul>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -84,7 +84,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ul><li>foo<ol><li>bar baz</li></ol></li></ul>' );
 
-		wordsReturned = this.getWordsInEditor();
+		wordsReturned = this.getWordsInEditorWithWordWalker();
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	}

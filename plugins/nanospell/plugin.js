@@ -425,7 +425,7 @@
             function render() {
                 var bookmarks = editor.getSelection().createBookmarks();
                 clearAllSpellCheckingSpans(editor.editable());
-                MarkAllTypos();
+                self.markAllTypos(editor);
                 editor.getSelection().selectBookmarks(bookmarks);
 
                 editor.fire('SpellcheckStart');
@@ -571,19 +571,6 @@
                 return false;
             }
 
-            //# SECTION MARKUP #//
-            function MarkAllTypos(body) {
-                var range = editor.createRange(),
-                    block;
-
-                range.selectNodeContents(editor.editable());
-
-                var iterator = range.createIterator();
-                while (( block = iterator.getNextParagraph() )) {
-                    markTypos(block);
-                }
-            }
-
             function getSuggestions(word) {
                 word = cleanQuotes(word);
                 if (suggestionscache[word] && suggestionscache[word][0]) {
@@ -592,39 +579,6 @@
                     }
                 }
                 return suggestionscache[word];
-            }
-
-            function markTypos(node) {
-                var match;
-
-                var range = editor.createRange();
-                range.selectNodeContents(node);
-                var wordwalker = new self.WordWalker(range);
-
-                var badRanges = [];
-                var matchtext;
-
-
-                while ((match = wordwalker.getNextWord()) != null) {
-                    matchtext = match.word;
-
-                    if (!validWordToken(matchtext)) {
-                        continue;
-                    }
-                    if (typeof(suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
-                        continue;
-                    }
-                    badRanges.push(match.range)
-
-                }
-
-                var rangeListIterator = (new CKEDITOR.dom.rangeList(badRanges)).createIterator();
-                var currRange;
-
-                while (currRange = rangeListIterator.getNextRange()) {
-                    wrapWithTypoSpan(currRange);
-                }
-
             }
 
             function wrapWithTypoSpan(range) {
@@ -783,6 +737,49 @@
                 removeFormatFilter.call(editor, removeFormatFilterTemplate);
             }
         },
+		markTypos: function(editor, node) {
+			var match;
+
+			var range = editor.createRange();
+			range.selectNodeContents(node);
+			var wordwalker = new this.WordWalker(range);
+
+			var badRanges = [];
+			var matchtext;
+
+
+			while ((match = wordwalker.getNextWord()) != null) {
+				matchtext = match.word;
+
+				if (!validWordToken(matchtext)) {
+					continue;
+				}
+				if (typeof(suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
+					continue;
+				}
+				badRanges.push(match.range)
+
+			}
+
+			var rangeListIterator = (new CKEDITOR.dom.rangeList(badRanges)).createIterator();
+			var currRange;
+
+			while (currRange = rangeListIterator.getNextRange()) {
+				wrapWithTypoSpan(currRange);
+			}
+
+		},
+		markAllTypos: function(editor) {
+			var range = editor.createRange(),
+				block;
+
+			range.selectNodeContents(editor.editable());
+
+			var iterator = range.createIterator();
+			while (( block = iterator.getNextParagraph() )) {
+				this.markTypos(editor, block);
+			}
+		},
 		WordWalker: WordWalker
     });
 

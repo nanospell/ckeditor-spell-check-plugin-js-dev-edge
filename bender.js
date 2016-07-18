@@ -47,7 +47,7 @@ var config = {
             applications: [ 'ckeditor' ],
             basePath: 'tests/',
             paths: [
-				'wordwalker/**',
+				'typowalking/**',
                 'smoke/**',
                 '!**/_*/**'
             ],
