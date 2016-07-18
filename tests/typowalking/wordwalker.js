@@ -65,22 +65,34 @@ bender.test( {
 
 	'test walking multiple list items': function() {
 		var bot = this.editorBot,
-			wordsReturned;
-		bot.setHtmlWithSelection( '<ol><li>foo</li><li>bar</li><li>baz</li></ol>' );
+			wordsReturned,
+			list;
+		bot.setHtmlWithSelection( '<ol><li>foo bar</li><li>bar baz</li><li>baz foo</li></ol>' );
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		list = this.editor.editable().getFirst();
 
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(['foo', 'bar'], this.getWordsWithWordWalker( list.getChild(0) ));
+		arrayAssert.itemsAreEqual(['bar', 'baz'], this.getWordsWithWordWalker( list.getChild(1) ));
+		arrayAssert.itemsAreEqual(['baz', 'foo'], this.getWordsWithWordWalker( list.getChild(2) ));
 	},
 
 	'test walking in a double nested list': function() {
 		var bot = this.editorBot,
-			wordsReturned;
+			wordsReturned,
+			outerUnorderedList,
+			innerOrderedList;
 		bot.setHtmlWithSelection( '<ul><li><ol><li>foo bar baz</li></ol></li></ul>' );
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		outerUnorderedList = this.editor.editable().getFirst();
 
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		innerOrderedList = outerUnorderedList.getFirst().getFirst();
+
+		// due to the way that range iterators work, the `li` get passed in.
+
+		// we special-case the walker to not follow into nested blocks
+		// because of the special list case where they get passed in twice.
+		arrayAssert.itemsAreEqual([], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
 	},
 
 	'test walking across a double nested list': function() {
