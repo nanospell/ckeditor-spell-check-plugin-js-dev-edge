@@ -24,9 +24,6 @@
 	var editorHasFocus = false;
 	var spell_delay = 250;
 	var spell_fast_after_spacebar = true;
-	var this
-	.
-	settings;
 	var settings_path;
 	var state = false;
 	var lang = "en";
