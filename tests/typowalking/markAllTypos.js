@@ -111,8 +111,7 @@ bender.test( {
 
 		markedHtml = this.getMarkedHtmlBlocksAsText();
 
-
-		this.assertHtml('<li>fud</li>', markedHtml[0]);
+		this.assertHtml('<li>fud<ol><li>foo</li><li>bar</li></ol></li><li>baz</li>', markedHtml[0]);
 		this.assertHtml('<li>foo</li>', markedHtml[1]);
 		this.assertHtml('<li>bar</li>', markedHtml[2]);
 		this.assertHtml('<li>baz</li>', markedHtml[3]);
