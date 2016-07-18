@@ -10,7 +10,10 @@ bender.editor = {
 };
 
 bender.test( {
-	getWordsInEditorWithWordWalker: function() {
+	setUp: function() {
+		this.editor = this.editorBot.editor;
+	},
+	getWordsWithWordWalker: function(root) {
 		var editor = this.editorBot.editor,
 			range,
 			wordwalker,
@@ -19,7 +22,7 @@ bender.test( {
 
 		range = new CKEDITOR.dom.range( editor.document );
 		// assume there is only one block level element.
-		range.selectNodeContents( editor.editable().getFirst() );
+		range.selectNodeContents( root );
 
 		wordwalker = new editor.plugins.nanospell.WordWalker(range);
 
@@ -35,7 +38,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -45,7 +48,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -55,7 +58,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ol><li>foo bar baz</li></ol>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -65,7 +68,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ol><li>foo</li><li>bar</li><li>baz</li></ol>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -75,7 +78,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ul><li><ol><li>foo bar baz</li></ol></li></ul>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
 	},
@@ -85,7 +88,7 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<ul><li>foo<ol><li>bar baz</li></ol></li></ul>' );
 
-		wordsReturned = this.getWordsInEditorWithWordWalker();
+		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
 		arrayAssert.itemsAreEqual(['foo'], wordsReturned);
 	}

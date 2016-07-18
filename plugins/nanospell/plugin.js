@@ -45,8 +45,15 @@
 	function WordWalker(range) {
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
 
+		var startNode = range.startContainer;
+		var endNode = range.endContainer;
+
+		console.assert(startNode.equals(endNode));
+
 		function evaluator(node) {
-			return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node);
+			var path = new CKEDITOR.dom.elementPath( node, startNode );
+
+			return node.type == CKEDITOR.NODE_TEXT && node.getLength() > 0 && ( !node.isReadOnly() ) && isNotBookmark(node) && (path.block && path.block.equals(startNode));
 		}
 
 		var walker = new CKEDITOR.dom.walker(range);
