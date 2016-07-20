@@ -147,7 +147,7 @@ bender.test( {
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
-		innerOrderedList = outerUnorderedList.getFirst().getFirst();
+		innerOrderedList = outerUnorderedList.getFirst().getChild(1);
 
 		// this is a bug!  but pinning it for later.
 		// although we have solved the problem of inner list being walked twice,

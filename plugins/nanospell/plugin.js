@@ -69,7 +69,7 @@
 		}
 
 		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
-		rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
+		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
@@ -80,14 +80,9 @@
 			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
 
-		this.textNode = walker.next();
+		this.textNode = this.rootBlockTextNodeWalker.next();
 		this.offset = 0;
 		this.origRange = range;
-
-		this._ = {
-			walker: rootBlockTextNodeWalker,
-			isWordSeparator: isWordSeparator
-		}
 	}
 
 	WordWalker.prototype = {
@@ -96,7 +91,7 @@
 			length = text.length;
 
 			for (i = startIndex + 1; i < length; i++) {
-				if (!this._.isWordSeparator(text[i])) {
+				if (!this.isWordSeparator(text[i])) {
 					break;
 				}
 			}
@@ -125,7 +120,7 @@
 			while (currentTextNode !== null) {
 				text = currentTextNode.getText();
 				for (i = this.offset; i < text.length; i++) {
-					if (this._.isWordSeparator(text[i])) {
+					if (this.isWordSeparator(text[i])) {
 						word += text.substr(this.offset, i - this.offset);
 						wordRange.setEnd(currentTextNode, i);
 
@@ -140,7 +135,7 @@
 				word += text.substr(this.offset);
 				this.offset = 0;
 				wordRange.setEndAfter(this.textNode);
-				currentTextNode = this._.walker.next();
+				currentTextNode = this.rootBlockTextNodeWalker.next();
 
 				this.textNode = currentTextNode;
 
