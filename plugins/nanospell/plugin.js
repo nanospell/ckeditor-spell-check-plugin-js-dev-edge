@@ -54,7 +54,7 @@
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
 			// the text nodes in the walker.
-			// beacuse of a special case around nested lists,
+			// because of a special case around nested lists,
 			// non-root block nodes must also be excluded.
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
