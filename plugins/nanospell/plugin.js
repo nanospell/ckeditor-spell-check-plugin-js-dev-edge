@@ -39,8 +39,6 @@
 		return word.replace(/[\u2018\u2019]/g, "'");
 	}
 
-	// wordwalker definition
-
 	function WordWalker(range) {
 		// the WordWalker takes a range encompassing a block element
 		// (for example, p, li, td)
