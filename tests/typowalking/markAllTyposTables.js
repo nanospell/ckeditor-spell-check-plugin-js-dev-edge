@@ -47,16 +47,16 @@ bender.test( {
 
 		bot.setHtmlWithSelection(
 			'<table>' +
-			'<tbody>' +
-			'<tr>' +
-			'<td>cell1</td>' +
-			'<td>cell2</td>' +
-			'</tr>' +
-			'<tr>' +
-			'<td>cell3</td>' +
-			'<td>cell4</td>' +
-			'</tr>' +
-			'</tbody>' +
+				'<tbody>' +
+					'<tr>' +
+						'<td>cell1</td>' +
+						'<td>cell2</td>' +
+					'</tr>' +
+					'<tr>' +
+						'<td>cell3</td>' +
+						'<td>cell4</td>' +
+					'</tr>' +
+				'</tbody>' +
 			'</table>'
 		);
 
@@ -76,16 +76,16 @@ bender.test( {
 
 		bot.setHtmlWithSelection(
 			'<table>' +
-			'<tbody>' +
-			'<tr>' +
-			'<td><p>cell1</p></td>' +
-			'<td><p>cell2</p></td>' +
-			'</tr>' +
-			'<tr>' +
-			'<td>cell3</td>' +
-			'<td>cell4</td>' +
-			'</tr>' +
-			'</tbody>' +
+				'<tbody>' +
+					'<tr>' +
+						'<td><p>cell1</p></td>' +
+						'<td><p>cell2</p></td>' +
+					'</tr>' +
+					'<tr>' +
+						'<td>cell3</td>' +
+						'<td>cell4</td>' +
+					'</tr>' +
+				'</tbody>' +
 			'</table>'
 		);
 
