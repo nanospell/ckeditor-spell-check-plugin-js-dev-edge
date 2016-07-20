@@ -366,7 +366,7 @@
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
-				triggerSpelling((spell_fast_after_spacebar && (ch8r === 32 || ch8r === 10 || ch8r === 13)))
+				triggerSpelling((spellFastAfterSpacebar && (ch8r === 32 || ch8r === 10 || ch8r === 13)))
 			}
 
 			function isSpellCheckSpan(node) {
@@ -546,22 +546,6 @@
 				return suggestionscache[word];
 			}
 
-			function wrapWithTypoSpan(range) {
-				var span = editor.document.createElement(
-					'span',
-					{
-						attributes: {
-							'class': 'nanospell-typo'
-						}
-					}
-				);
-
-				range.extractContents().appendTo(span);
-
-				range.insertNode(span);
-
-			}
-
 			function unwrapTypoSpan(span) {
 
 				span.remove(true);
@@ -574,13 +558,13 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			var spell_ticker = null;
+			var spellTicker = null;
 
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
-				clearTimeout(spell_ticker);
+				clearTimeout(spellTicker);
 				if (selectionCollapsed) {
-					spell_ticker = setTimeout(checkNow, immediate ? 50 : spellDelay);
+					spellTicker = setTimeout(checkNow, immediate ? 50 : spellDelay);
 				}
 			}
 
@@ -742,6 +726,21 @@
 			}
 			return !this.hasPersonal(word);
 		},
+		wrapWithTypoSpan: function(editor, range) {
+			var span = editor.document.createElement(
+				'span',
+				{
+					attributes: {
+						'class': 'nanospell-typo'
+					}
+				}
+			);
+
+			range.extractContents().appendTo(span);
+
+			range.insertNode(span);
+
+		},
 		markTypos: function (editor, node) {
 			var match;
 
@@ -770,7 +769,7 @@
 			var currRange;
 
 			while (currRange = rangeListIterator.getNextRange()) {
-				wrapWithTypoSpan(currRange);
+				this.wrapWithTypoSpan(editor, currRange);
 			}
 
 		},
