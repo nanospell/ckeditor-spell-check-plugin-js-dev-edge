@@ -1,6 +1,6 @@
 /**
  * Bender configuration file
- * 
+ *
  * @param {Object}   applications       Applications used in current project
  * @param {Array}    browsers           List of browsers used for testing
  * @param {Number}   captureTimeout     Timeout before which a launched browser should connect to the server
@@ -48,6 +48,7 @@ var config = {
             basePath: 'tests/',
             paths: [
                 'smoke/**',
+				'typowalking/**',
                 '!**/_*/**'
             ],
             // Latest of the old API (1.8.3)
