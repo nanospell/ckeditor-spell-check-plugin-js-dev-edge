@@ -24,7 +24,6 @@
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
-	var settingsPath;
 	var state = false;
 	var lang = "en";
 	var locale = {
@@ -156,10 +155,8 @@
 			var self = this;
 
 			this.addRule(editor);
-
 			overrideCheckDirty();
 
-			settingsPath = this.path;
 			if (editor && !editor.config.nanospell) {
 				editor.config.nanospell = {};
 			}
@@ -306,7 +303,7 @@
 					return retobj
 				});
 
-				appendCustomStyles(settingsPath);
+				appendCustomStyles(self.path);
 			}
 
 			/* #2 setup layer */
@@ -420,7 +417,7 @@
 						console.log(msg)
 					} else {
 						if (confirm(msg)) {
-							window.location = settingsPath + "../getstarted.html"
+							window.location = self.path + "../getstarted.html"
 						}
 					}
 				}
