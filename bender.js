@@ -47,8 +47,8 @@ var config = {
             applications: [ 'ckeditor' ],
             basePath: 'tests/',
             paths: [
-				'typowalking/**',
                 'smoke/**',
+				'typowalking/**',
                 '!**/_*/**'
             ],
             // Latest of the old API (1.8.3)
