@@ -22,9 +22,8 @@
 
 	var maxRequest = 200;
 	var editorHasFocus = false;
-	var spell_delay = 250;
-	var spell_fast_after_spacebar = true;
-	var settings_path;
+	var spellDelay = 250;
+	var spellFastAfterSpacebar = true;
 	var state = false;
 	var lang = "en";
 	var locale = {
@@ -36,21 +35,27 @@
 	var suggestionscache = [];
 	var ignorecache = [];
 
-	function cleanQuotes(word) {
+	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
-	};
-
-	// wordwalker definition
+	}
 
 	function WordWalker(range) {
+		// the WordWalker takes a range encompassing a block element
+		// (for example, p, li, td)
+		// and provides a mechanism for iterating over each word within,
+		// ignoring non-block elements.  (for example, span)
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
 
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
 
-		console.assert(startNode.equals(endNode));
-
-		function evaluator(node) {
+		function isRootBlockTextNode(node) {
+			// this function is an evaluator used to return only
+			// the text nodes in the walker.
+			// because of a special case around nested lists,
+			// non-root block nodes must also be excluded.
+			// the text content of ckeditor bookmarks must also be excluded
+			// or &nbsp; will be added throughout.
 			var path = new CKEDITOR.dom.elementPath( node, startNode );
 
 			return node.type == CKEDITOR.NODE_TEXT && // it is a text node
@@ -60,26 +65,21 @@
 				(path.block && path.block.equals(startNode)); // it's not nested in a deeper block from our root.
 		}
 
-		var walker = new CKEDITOR.dom.walker(range);
-		walker.evaluator = evaluator;
+		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
+		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
-		var isWordSeparator = function (c) {
-			if (!c)
+		this.isWordSeparator = function (character) {
+			if (!character)
 				return true;
-			var code = c.charCodeAt(0);
-			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(c);
+			var code = character.charCodeAt(0);
+			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
 
-		this.textNode = walker.next();
+		this.textNode = this.rootBlockTextNodeWalker.next();
 		this.offset = 0;
 		this.origRange = range;
-
-		this._ = {
-			walker: walker,
-			isWordSeparator: isWordSeparator
-		}
 	}
 
 	WordWalker.prototype = {
@@ -88,7 +88,7 @@
 			length = text.length;
 
 			for (i = startIndex + 1; i < length; i++) {
-				if (!this._.isWordSeparator(text[i])) {
+				if (!this.isWordSeparator(text[i])) {
 					break;
 				}
 			}
@@ -117,7 +117,7 @@
 			while (currentTextNode !== null) {
 				text = currentTextNode.getText();
 				for (i = this.offset; i < text.length; i++) {
-					if (this._.isWordSeparator(text[i])) {
+					if (this.isWordSeparator(text[i])) {
 						word += text.substr(this.offset, i - this.offset);
 						wordRange.setEnd(currentTextNode, i);
 
@@ -132,12 +132,14 @@
 				word += text.substr(this.offset);
 				this.offset = 0;
 				wordRange.setEndAfter(this.textNode);
-				currentTextNode = this._.walker.next();
+				currentTextNode = this.rootBlockTextNodeWalker.next();
 
 				this.textNode = currentTextNode;
 
 			}
-			// reached the end of paragraph
+			// reached the end of block,
+			// so just return what we've walked
+			// of the current word.
 
 			return {
 				word: word,
@@ -153,10 +155,8 @@
 			var self = this;
 
 			this.addRule(editor);
-
 			overrideCheckDirty();
 
-			settings_path = this.path;
 			if (editor && !editor.config.nanospell) {
 				editor.config.nanospell = {};
 			}
@@ -303,7 +303,7 @@
 					return retobj
 				});
 
-				appendCustomStyles(settings_path);
+				appendCustomStyles(self.path);
 			}
 
 			/* #2 setup layer */
@@ -417,7 +417,7 @@
 						console.log(msg)
 					} else {
 						if (confirm(msg)) {
-							window.location = settings_path + "../getstarted.html"
+							window.location = self.path + "../getstarted.html"
 						}
 					}
 				}
@@ -514,7 +514,7 @@
 					return words;
 				}
 				for (var i = 0; i < matches.length; i++) {
-					var word = cleanQuotes(matches[i]);
+					var word = normalizeQuotes(matches[i]);
 					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
@@ -537,7 +537,7 @@
 			}
 
 			function getSuggestions(word) {
-				word = cleanQuotes(word);
+				word = normalizeQuotes(word);
 				if (suggestionscache[word] && suggestionscache[word][0]) {
 					if (suggestionscache[word][0].indexOf("*") == 0) {
 						return ["nanospell\xA0plugin\xA0developer\xA0trial ", "ckeditor-spellcheck.nanospell.com/license\xA0"];
@@ -580,7 +580,7 @@
 				//only recheck when the user pauses typing
 				clearTimeout(spell_ticker);
 				if (selectionCollapsed) {
-					spell_ticker = setTimeout(checkNow, immediate ? 50 : spell_delay);
+					spell_ticker = setTimeout(checkNow, immediate ? 50 : spellDelay);
 				}
 			}
 
@@ -759,7 +759,7 @@
 				if (!this.validWordToken(matchtext)) {
 					continue;
 				}
-				if (typeof(suggestionscache[cleanQuotes(matchtext)]) !== 'object') {
+				if (typeof(suggestionscache[normalizeQuotes(matchtext)]) !== 'object') {
 					continue;
 				}
 				badRanges.push(match.range)
