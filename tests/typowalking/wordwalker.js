@@ -56,7 +56,11 @@ bender.test( {
 	'test walking a single item list': function() {
 		var bot = this.editorBot,
 			wordsReturned;
-		bot.setHtmlWithSelection( '<ol><li>foo bar baz</li></ol>' );
+		bot.setHtmlWithSelection(
+			'<ol>' +
+				'<li>foo bar baz</li>' +
+			'</ol>'
+		);
 
 		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
@@ -67,7 +71,13 @@ bender.test( {
 		var bot = this.editorBot,
 			wordsReturned,
 			list;
-		bot.setHtmlWithSelection( '<ol><li>foo bar</li><li>bar baz</li><li>baz foo</li></ol>' );
+		bot.setHtmlWithSelection(
+			'<ol>' +
+				'<li>foo bar</li>' +
+				'<li>bar baz</li>' +
+				'<li>baz foo</li>' +
+			'</ol>'
+		);
 
 		list = this.editor.editable().getFirst();
 
@@ -81,7 +91,15 @@ bender.test( {
 			wordsReturned,
 			outerUnorderedList,
 			innerOrderedList;
-		bot.setHtmlWithSelection( '<ul><li><ol><li>foo bar baz</li></ol></li></ul>' );
+		bot.setHtmlWithSelection(
+			'<ul>' +
+				'<li>' +
+					'<ol>' +
+						'<li>foo bar baz</li>' +
+					'</ol>' +
+				'</li>' +
+			'</ul>'
+		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
@@ -98,7 +116,14 @@ bender.test( {
 	'test walking across a double nested list': function() {
 		var bot = this.editorBot,
 			wordsReturned;
-		bot.setHtmlWithSelection( '<ul><li>foo<ol><li>bar baz</li></ol></li></ul>' );
+		bot.setHtmlWithSelection(
+			'<ul>' +
+				'<li>foo' +
+					'<ol>' +
+						'<li>bar baz</li>' +
+					'</ol>' +
+				'</li>' +
+			'</ul>' );
 
 		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 
@@ -110,7 +135,15 @@ bender.test( {
 			wordsReturned,
 			outerUnorderedList,
 			innerOrderedList;
-		bot.setHtmlWithSelection( '<ul><li>foo<ol><li>bar</li></ol>baz</li></ul>' );
+		bot.setHtmlWithSelection(
+			'<ul>' +
+				'<li>foo' +
+					'<ol>' +
+						'<li>bar</li>' +
+					'</ol>' +
+				'baz</li>' +
+			'</ul>'
+		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
