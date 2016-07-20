@@ -137,7 +137,9 @@
 				this.textNode = currentTextNode;
 
 			}
-			// reached the end of paragraph
+			// reached the end of block,
+			// so just return what we've walked
+			// of the current word.
 
 			return {
 				word: word,
