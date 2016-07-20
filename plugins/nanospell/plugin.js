@@ -52,8 +52,6 @@
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
 
-		console.assert(startNode.equals(endNode));
-
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
 			// the text nodes in the walker.
