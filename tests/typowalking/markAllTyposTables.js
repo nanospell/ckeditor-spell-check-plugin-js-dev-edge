@@ -78,11 +78,11 @@ bender.test( {
 			'<table>' +
 				'<tbody>' +
 					'<tr>' +
-						'<td><p>cell1</p></td>' +
+						'<td><p>c<b>e</b>ll1</p></td>' +
 						'<td><p>cell2</p></td>' +
 					'</tr>' +
 					'<tr>' +
-						'<td>cell3</td>' +
+						'<td>ce<em>l</em>l3</td>' +
 						'<td>cell4</td>' +
 					'</tr>' +
 				'</tbody>' +
@@ -93,9 +93,9 @@ bender.test( {
 
 		markedHtml = this.getMarkedHtmlBlocksAsText();
 
-		this.assertHtml('<p>cell1</p>', markedHtml[0]);
+		this.assertHtml('<p>c<b>e</b>ll1</p>', markedHtml[0]);
 		this.assertHtml('<p>cell2</p>', markedHtml[1]);
-		this.assertHtml('<td>cell3</td>', markedHtml[2]);
+		this.assertHtml('<td>ce<em>l</em>l3</td>', markedHtml[2]);
 		this.assertHtml('<td>cell4</td>', markedHtml[3]);
 	},
 
