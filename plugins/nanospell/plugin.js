@@ -34,6 +34,11 @@
 	var spellcache = [];
 	var suggestionscache = [];
 	var ignorecache = [];
+	var CHARCODES = {
+		SPACE: 32,
+		LF: 10,
+		CR: 13,
+	};
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -56,7 +61,7 @@
 			// non-root block nodes must also be excluded.
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
-			var path = new CKEDITOR.dom.elementPath( node, startNode );
+			var path = new CKEDITOR.dom.elementPath(node, startNode);
 
 			return node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
@@ -366,7 +371,7 @@
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
-				triggerSpelling((spell_fast_after_spacebar && (ch8r === 32 || ch8r === 10 || ch8r === 13)))
+				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)))
 			}
 
 			function isSpellCheckSpan(node) {
@@ -525,6 +530,7 @@
 				}
 				return words;
 			}
+
 			function addPersonal(word) {
 				var value = localStorage.getItem('nano_spellchecker_personal');
 				if (value !== null && value !== "") {
@@ -546,22 +552,6 @@
 				return suggestionscache[word];
 			}
 
-			function wrapWithTypoSpan(range) {
-				var span = editor.document.createElement(
-					'span',
-					{
-						attributes: {
-							'class': 'nanospell-typo'
-						}
-					}
-				);
-
-				range.extractContents().appendTo(span);
-
-				range.insertNode(span);
-
-			}
-
 			function unwrapTypoSpan(span) {
 
 				span.remove(true);
@@ -574,13 +564,13 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			var spell_ticker = null;
+			var spellTicker = null;
 
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
-				clearTimeout(spell_ticker);
+				clearTimeout(spellTicker);
 				if (selectionCollapsed) {
-					spell_ticker = setTimeout(checkNow, immediate ? 50 : spellDelay);
+					spellTicker = setTimeout(checkNow, immediate ? 50 : spellDelay);
 				}
 			}
 
@@ -742,6 +732,18 @@
 			}
 			return !this.hasPersonal(word);
 		},
+		wrapWithTypoSpan: function (editor, range) {
+			var span = editor.document.createElement(
+				'span',
+				{
+					attributes: {
+						'class': 'nanospell-typo'
+					}
+				}
+			);
+			range.extractContents().appendTo(span);
+			range.insertNode(span);
+		},
 		markTypos: function (editor, node) {
 			var match;
 
@@ -770,7 +772,7 @@
 			var currRange;
 
 			while (currRange = rangeListIterator.getNextRange()) {
-				wrapWithTypoSpan(currRange);
+				this.wrapWithTypoSpan(editor, currRange);
 			}
 
 		},
