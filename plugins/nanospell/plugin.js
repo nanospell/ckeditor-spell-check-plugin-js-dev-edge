@@ -159,6 +159,12 @@
 		init: function (editor) {
 			var self = this;
 
+			// a lock to prevent multiple spellchecks
+			this._isBusy = false;
+
+			// store the current timer
+			this._timer = null;
+
 			this.addRule(editor);
 			overrideCheckDirty();
 
