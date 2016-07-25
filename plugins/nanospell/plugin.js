@@ -75,13 +75,8 @@
 			return condition;
 		}
 
-		function guard(node) {
-			return isBlockBoundary(node) && !(node.equals(startNode));
-		}
-
 		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
 		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
-		//this.rootBlockTextNodeWalker.guard = guard;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
