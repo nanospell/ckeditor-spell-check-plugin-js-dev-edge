@@ -50,6 +50,7 @@
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+		var isBlockBoundary = CKEDITOR.dom.walker.blockBoundary();
 
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
@@ -61,17 +62,22 @@
 			// non-root block nodes must also be excluded.
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
-			var path = new CKEDITOR.dom.elementPath(node, startNode);
 
-			return node.type == CKEDITOR.NODE_TEXT && // it is a text node
+			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
-				isNotBookmark(node) &&  // and isn't a fake bookmarking node
-				(path.block && path.block.equals(startNode)); // it's not nested in a deeper block from our root.
+				isNotBookmark(node);// and isn't a fake bookmarking node
+
+			return condition;
+		}
+
+		function guard(node) {
+			return isBlockBoundary(node) && !(node.equals(startNode));
 		}
 
 		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
 		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
+		this.rootBlockTextNodeWalker.guard = guard;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
