@@ -328,7 +328,7 @@
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
 				state = true;
 
-				startTimer(50);
+				startSpellCheckTimer(50);
 			}
 
 			function stop() {
@@ -580,7 +580,7 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			function startTimer(delay) {
+			function startSpellCheckTimer(delay) {
 				if (self._timer) {
 				} else {
 					self._timer = setTimeout(checkNow, delay);
@@ -590,7 +590,7 @@
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
 				if (selectionCollapsed()) {
-					startTimer(immediate ? 50 : spellDelay)
+					startSpellCheckTimer(immediate ? 50 : spellDelay)
 				}
 			}
 
