@@ -69,8 +69,8 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-				(path.blockLimit ? path.blockLimit.equals(startNode): true) &&
-				(path.block ? path.block.equals(startNode): true); // check we don't enter nested blocks (special list case)
+				(path.blockLimit ? path.blockLimit.equals(startNode): true) && // check we don't enter another block-like element
+				(path.block ? path.block.equals(startNode): true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
 			return condition;
 		}
