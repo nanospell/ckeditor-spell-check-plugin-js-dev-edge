@@ -182,13 +182,9 @@ bender.test( {
 			'</li></ul>'
 		);
 
-
 		outerUnorderedList = this.editor.editable().getFirst();
 
 		arrayAssert.itemsAreEqual(['asdf'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
 	}
-
-
-
 } );
 

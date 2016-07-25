@@ -772,12 +772,9 @@
 		},
 		markTyposInRange: function (editor, range) {
 			var match;
-
 			var wordwalker = new this.WordWalker(range);
-
 			var badRanges = [];
 			var matchtext;
-
 
 			while ((match = wordwalker.getNextWord()) != null) {
 				matchtext = match.word;
