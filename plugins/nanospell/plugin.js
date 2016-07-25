@@ -63,10 +63,14 @@
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
 
+			var path = new CKEDITOR.dom.elementPath(node, startNode);
+
 			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
-				isNotBookmark(node);// and isn't a fake bookmarking node
+				isNotBookmark(node) && // and isn't a fake bookmarking node
+				(path.blockLimit ? path.blockLimit.equals(startNode): true) &&
+				(path.block ? path.block.equals(startNode): true);
 
 			return condition;
 		}
@@ -77,7 +81,7 @@
 
 		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
 		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
-		this.rootBlockTextNodeWalker.guard = guard;
+		//this.rootBlockTextNodeWalker.guard = guard;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
@@ -769,7 +773,7 @@
 			var range = editor.createRange();
 			range.selectNodeContents(node);
 
-			this.markTyposInRange(range);
+			this.markTyposInRange(editor, range);
 		},
 		markTyposInRange: function (editor, range) {
 			var match;
