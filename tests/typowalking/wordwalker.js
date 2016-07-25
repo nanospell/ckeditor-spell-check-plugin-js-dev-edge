@@ -157,7 +157,7 @@ bender.test( {
 		arrayAssert.itemsAreEqual(['bar'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
 	},
 
-	'test walking nested table in list': function() {
+	'test walking list item which has textnode with table sibling': function() {
 		var bot = this.editorBot,
 			wordsReturned,
 			outerUnorderedList,
@@ -165,20 +165,20 @@ bender.test( {
 		bot.setHtmlWithSelection(
 			'<ul><li>' +
 				'asdf' +
-			'<table>' +
-			'<thead>' +
-			'<tr>' +
-			'<th>cell1</th>' +
-			'<th>cell2</th>' +
-			'</tr>' +
-			'</thead>' +
-			'<tbody>' +
-			'<tr>' +
-			'<td>cell3</td>' +
-			'<td>cell4</td>' +
-			'</tr>' +
-			'</tbody>' +
-			'</table>' +
+				'<table>' +
+					'<thead>' +
+						'<tr>' +
+							'<th>cell1</th>' +
+							'<th>cell2</th>' +
+						'</tr>' +
+					'</thead>' +
+					'<tbody>' +
+						'<tr>' +
+							'<td>cell3</td>' +
+							'<td>cell4</td>' +
+						'</tr>' +
+					'</tbody>' +
+				'</table>' +
 			'</li></ul>'
 		);
 
