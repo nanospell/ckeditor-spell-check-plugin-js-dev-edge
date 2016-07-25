@@ -70,7 +70,7 @@
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
 				(path.blockLimit ? path.blockLimit.equals(startNode): true) &&
-				(path.block ? path.block.equals(startNode): true);
+				(path.block ? path.block.equals(startNode): true); // check we don't enter nested blocks (special list case)
 
 			return condition;
 		}
