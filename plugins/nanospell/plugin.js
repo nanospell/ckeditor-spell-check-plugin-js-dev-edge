@@ -766,10 +766,14 @@
 			range.insertNode(span);
 		},
 		markTypos: function (editor, node) {
-			var match;
-
 			var range = editor.createRange();
 			range.selectNodeContents(node);
+
+			this.markTyposInRange(range);
+		},
+		markTyposInRange: function (editor, range) {
+			var match;
+
 			var wordwalker = new this.WordWalker(range);
 
 			var badRanges = [];
@@ -795,7 +799,6 @@
 			while (currRange = rangeListIterator.getNextRange()) {
 				this.wrapWithTypoSpan(editor, currRange);
 			}
-
 		},
 		markAllTypos: function (editor) {
 			var range = editor.createRange(),
