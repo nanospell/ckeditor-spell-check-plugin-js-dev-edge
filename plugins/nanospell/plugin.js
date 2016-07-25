@@ -325,28 +325,33 @@
 
 			/* #2 setup layer */
 			/* #3 nanospell util layer */
-			var start = function () {
+			function start() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
 				state = true;
-				var words = getWords(editor.document.$.body, maxRequest);
-				if (words.length == 0) {
-					render();
-				} else {
-					send(words);
-				}
-			};
-			var stop = function () {
+
+				startTimer(50);
+			}
+
+			function stop() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_OFF);
 				state = false;
 				clearAllSpellCheckingSpans(editor.editable());
-			};
+			}
 
 			function checkNow() {
-				if (!selectionCollapsed()) {
+				if (!selectionCollapsed() || self._isBusy) {
 					return;
 				}
 				if (state) {
-					start();
+
+					self._isBusy = true;
+
+					var words = getWords(editor.document.$.body, maxRequest);
+					if (words.length == 0) {
+						render();
+					} else {
+						send(words);
+					}
 				}
 			}
 
@@ -394,9 +399,7 @@
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					if (words.length >= maxRequest) {
-						checkNow()
-					}
+					render();
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -464,6 +467,8 @@
 
 				editor.fire('SpellcheckStart');
 				editor.nanospellstarted = true;
+				self._isBusy = false;
+				self._timer = 0;
 			}
 
 			function clearAllSpellCheckingSpans(element) {
@@ -576,13 +581,17 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			var spellTicker = null;
+			function startTimer(delay) {
+				if (self._timer) {
+				} else {
+					self._timer = setTimeout(checkNow, delay);
+				}
+			}
 
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
-				clearTimeout(spellTicker);
-				if (selectionCollapsed) {
-					spellTicker = setTimeout(checkNow, immediate ? 50 : spellDelay);
+				if (selectionCollapsed()) {
+					startTimer(immediate ? 50 : spellDelay)
 				}
 			}
 

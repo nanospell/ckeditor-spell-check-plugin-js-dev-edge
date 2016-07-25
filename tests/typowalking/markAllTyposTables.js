@@ -97,11 +97,7 @@ bender.test( {
 		this.assertHtml('<p>cell2</p>', markedHtml[1]);
 		this.assertHtml('<td>ce<em>l</em>l3</td>', markedHtml[2]);
 		this.assertHtml('<td>cell4</td>', markedHtml[3]);
-	},
-
-
-
-
+	}
 
 } );
 
