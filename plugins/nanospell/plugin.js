@@ -471,7 +471,7 @@
 				editor.fire('SpellcheckStart');
 				editor.nanospellstarted = true;
 				self._spellCheckInProgress = false;
-				self._timer = 0;
+				self._timer = null;
 			}
 
 			function clearAllSpellCheckingSpans(element) {
@@ -585,7 +585,7 @@
 			}
 
 			function startSpellCheckTimer(delay) {
-				if (self._timer) {
+				if (self._timer === null) {
 				} else {
 					self._timer = setTimeout(checkNow, delay);
 				}
