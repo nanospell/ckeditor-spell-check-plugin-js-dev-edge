@@ -168,7 +168,7 @@
 			var self = this;
 
 			// a lock to prevent multiple spellchecks
-			this._isBusy = false;
+			this._spellCheckInProgress = false;
 
 			// store the current timer
 			this._timer = null;
@@ -341,12 +341,12 @@
 			}
 
 			function checkNow() {
-				if (!selectionCollapsed() || self._isBusy) {
+				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					return;
 				}
 				if (state) {
 
-					self._isBusy = true;
+					self._spellCheckInProgress = true;
 
 					var words = getWords(editor.document.$.body, maxRequest);
 					if (words.length == 0) {
@@ -469,7 +469,7 @@
 
 				editor.fire('SpellcheckStart');
 				editor.nanospellstarted = true;
-				self._isBusy = false;
+				self._spellCheckInProgress = false;
 				self._timer = 0;
 			}
 
