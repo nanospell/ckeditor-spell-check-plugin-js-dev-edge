@@ -39,6 +39,7 @@
 		LF: 10,
 		CR: 13,
 	};
+	var DEFAULT_DELAY = 50;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -331,7 +332,7 @@
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
 				state = true;
 
-				startSpellCheckTimer(50);
+				startSpellCheckTimer(DEFAULT_DELAY);
 			}
 
 			function stop() {
@@ -593,7 +594,7 @@
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
 				if (selectionCollapsed()) {
-					startSpellCheckTimer(immediate ? 50 : spellDelay)
+					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay)
 				}
 			}
 
