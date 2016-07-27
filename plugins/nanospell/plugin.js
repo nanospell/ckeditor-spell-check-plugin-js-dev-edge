@@ -24,7 +24,7 @@
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
-	var state = false;
+	var commandIsActive = false;
 	var lang = "en";
 	var locale = {
 		ignore: "Ignore",
@@ -187,7 +187,7 @@
 			lang = this.settings.dictionary || lang;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
-					if (!state) {
+					if (!commandIsActive) {
 						start();
 					} else {
 						stop();
@@ -222,7 +222,7 @@
 				}
 			});
 			editor.on('mode', function () {
-				if (editor.mode == 'wysiwyg' && state) {
+				if (editor.mode == 'wysiwyg' && commandIsActive) {
 					start()
 				}
 				return true;
@@ -330,14 +330,14 @@
 			/* #3 nanospell util layer */
 			function start() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
-				state = true;
+				commandIsActive = true;
 
 				startSpellCheckTimer(DEFAULT_DELAY);
 			}
 
 			function stop() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_OFF);
-				state = false;
+				commandIsActive = false;
 				clearAllSpellCheckingSpans(editor.editable());
 			}
 
@@ -345,7 +345,7 @@
 				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					return;
 				}
-				if (state) {
+				if (commandIsActive) {
 
 					self._spellCheckInProgress = true;
 
