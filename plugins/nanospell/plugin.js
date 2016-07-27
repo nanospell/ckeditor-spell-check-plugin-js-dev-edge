@@ -585,7 +585,7 @@
 			}
 
 			function startSpellCheckTimer(delay) {
-				if (self._timer === null) {
+				if (self._timer !== null) {
 				} else {
 					self._timer = setTimeout(checkNow, delay);
 				}
