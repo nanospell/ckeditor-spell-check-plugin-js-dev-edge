@@ -24,7 +24,7 @@
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
-	var state = false;
+	var commandIsActive = false;
 	var lang = "en";
 	var locale = {
 		ignore: "Ignore",
@@ -39,6 +39,7 @@
 		LF: 10,
 		CR: 13,
 	};
+	var DEFAULT_DELAY = 50;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -50,6 +51,7 @@
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+		var isBlockBoundary = CKEDITOR.dom.walker.blockBoundary();
 
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
@@ -61,13 +63,20 @@
 			// non-root block nodes must also be excluded.
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
+
 			var path = new CKEDITOR.dom.elementPath(node, startNode);
 
-			return node.type == CKEDITOR.NODE_TEXT && // it is a text node
+			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
-				isNotBookmark(node) &&  // and isn't a fake bookmarking node
-				(path.block && path.block.equals(startNode)); // it's not nested in a deeper block from our root.
+				isNotBookmark(node) && // and isn't a fake bookmarking node
+				// tables and list items can get a bit weird with getNextParagraph()
+				// for example causing list item descendants to be included as part of the original list item
+				// and also individually as their own paragraph-like elements
+				(path.blockLimit ? path.blockLimit.equals(startNode): true) && // check we don't enter another block-like element
+				(path.block ? path.block.equals(startNode): true); // check we don't enter nested blocks (special list case since it's not considered a limit)
+
+			return condition;
 		}
 
 		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
@@ -159,6 +168,12 @@
 		init: function (editor) {
 			var self = this;
 
+			// a lock to prevent multiple spellchecks
+			this._spellCheckInProgress = false;
+
+			// store the current timer
+			this._timer = null;
+
 			this.addRule(editor);
 			overrideCheckDirty();
 
@@ -172,7 +187,7 @@
 			lang = this.settings.dictionary || lang;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
-					if (!state) {
+					if (!commandIsActive) {
 						start();
 					} else {
 						stop();
@@ -207,7 +222,7 @@
 				}
 			});
 			editor.on('mode', function () {
-				if (editor.mode == 'wysiwyg' && state) {
+				if (editor.mode == 'wysiwyg' && commandIsActive) {
 					start()
 				}
 				return true;
@@ -313,28 +328,33 @@
 
 			/* #2 setup layer */
 			/* #3 nanospell util layer */
-			var start = function () {
+			function start() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
-				state = true;
-				var words = getWords(editor.document.$.body, maxRequest);
-				if (words.length == 0) {
-					render();
-				} else {
-					send(words);
-				}
-			};
-			var stop = function () {
+				commandIsActive = true;
+
+				startSpellCheckTimer(DEFAULT_DELAY);
+			}
+
+			function stop() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_OFF);
-				state = false;
+				commandIsActive = false;
 				clearAllSpellCheckingSpans(editor.editable());
-			};
+			}
 
 			function checkNow() {
-				if (!selectionCollapsed()) {
+				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					return;
 				}
-				if (state) {
-					start();
+				if (commandIsActive) {
+
+					self._spellCheckInProgress = true;
+
+					var words = getWords(editor.document.$.body, maxRequest);
+					if (words.length == 0) {
+						render();
+					} else {
+						send(words);
+					}
 				}
 			}
 
@@ -382,9 +402,7 @@
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					if (words.length >= maxRequest) {
-						checkNow()
-					}
+					render();
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -452,6 +470,8 @@
 
 				editor.fire('SpellcheckStart');
 				editor.nanospellstarted = true;
+				self._spellCheckInProgress = false;
+				self._timer = null;
 			}
 
 			function clearAllSpellCheckingSpans(element) {
@@ -564,13 +584,17 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			var spellTicker = null;
+			function startSpellCheckTimer(delay) {
+				if (self._timer !== null) {
+				} else {
+					self._timer = setTimeout(checkNow, delay);
+				}
+			}
 
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
-				clearTimeout(spellTicker);
-				if (selectionCollapsed) {
-					spellTicker = setTimeout(checkNow, immediate ? 50 : spellDelay);
+				if (selectionCollapsed()) {
+					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay)
 				}
 			}
 
@@ -745,15 +769,16 @@
 			range.insertNode(span);
 		},
 		markTypos: function (editor, node) {
-			var match;
-
 			var range = editor.createRange();
 			range.selectNodeContents(node);
-			var wordwalker = new this.WordWalker(range);
 
+			this.markTyposInRange(editor, range);
+		},
+		markTyposInRange: function (editor, range) {
+			var match;
+			var wordwalker = new this.WordWalker(range);
 			var badRanges = [];
 			var matchtext;
-
 
 			while ((match = wordwalker.getNextWord()) != null) {
 				matchtext = match.word;
@@ -774,7 +799,6 @@
 			while (currRange = rangeListIterator.getNextRange()) {
 				this.wrapWithTypoSpan(editor, currRange);
 			}
-
 		},
 		markAllTypos: function (editor) {
 			var range = editor.createRange(),

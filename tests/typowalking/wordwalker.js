@@ -153,10 +153,38 @@ bender.test( {
 		// although we have solved the problem of inner list being walked twice,
 		// it's not smart enough yet to realize we need to add a whitespace when skipping over.
 		// we need to detect this special case and add a whitespace (harder than it sounds)
-		arrayAssert.itemsAreEqual(['foobaz'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+		arrayAssert.itemsAreEqual(['foo', 'baz'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
 		arrayAssert.itemsAreEqual(['bar'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
+	},
+
+	'test walking list item which has textnode with table sibling': function() {
+		var bot = this.editorBot,
+			wordsReturned,
+			outerUnorderedList,
+			innerOrderedList;
+		bot.setHtmlWithSelection(
+			'<ul><li>' +
+				'asdf' +
+				'<table>' +
+					'<thead>' +
+						'<tr>' +
+							'<th>cell1</th>' +
+							'<th>cell2</th>' +
+						'</tr>' +
+					'</thead>' +
+					'<tbody>' +
+						'<tr>' +
+							'<td>cell3</td>' +
+							'<td>cell4</td>' +
+						'</tr>' +
+					'</tbody>' +
+				'</table>' +
+			'</li></ul>'
+		);
+
+		outerUnorderedList = this.editor.editable().getFirst();
+
+		arrayAssert.itemsAreEqual(['asdf'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
 	}
-
-
 } );
 

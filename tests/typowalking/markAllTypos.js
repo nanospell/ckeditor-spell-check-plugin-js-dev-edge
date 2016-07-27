@@ -166,8 +166,7 @@ bender.test( {
 				'</ol>' +
 			'bop</li>', markedHtml[3]);
 		this.assertHtml('<li>baz</li>', markedHtml[4]);
-	},
-
+	}
 
 } );
 
