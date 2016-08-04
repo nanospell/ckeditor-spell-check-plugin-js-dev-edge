@@ -343,6 +343,8 @@
 
 			function checkNow() {
 				if (!selectionCollapsed() || self._spellCheckInProgress) {
+					self._timer = null;
+					startSpellCheckTimer(DEFAULT_DELAY);
 					return;
 				}
 				if (commandIsActive) {
