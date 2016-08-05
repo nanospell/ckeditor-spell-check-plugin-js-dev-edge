@@ -360,9 +360,9 @@
 
 					var words = getAllWords();
 					if (words.length == 0) {
-						render();
+						editor.fire(EVENT_NAMES.START_MARK_TYPOS);
 					} else {
-						send(words);
+						editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
 					}
 				}
 			}
@@ -407,15 +407,18 @@
 				return node.getName() === 'span' && node.hasClass('nanospell-typo');
 			}
 
-			function send(words) {
+			function send(event) {
+				var words = event.data;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					render();
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
 			}
+
+			editor.on(EVENT_NAMES.START_CHECK_WORDS, send, self);
 
 			function wordsToRPC(words, lang) {
 				return '{"id":"c0","method":"spellcheck","params":{"lang":"' + lang + '","words":["' + words.join('","') + '"]}}'
@@ -470,15 +473,17 @@
 				return '/spellcheck/nano/';
 			}
 
-			function render() {
+			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks();
 				clearAllSpellCheckingSpans(editor.editable());
 				self.markAllTypos(editor);
 				editor.getSelection().selectBookmarks(bookmarks);
-				
+
 				self._spellCheckInProgress = false;
 				self._timer = null;
 			}
+
+			editor.on(EVENT_NAMES.START_MARK_TYPOS, render, self);
 
 			function clearAllSpellCheckingSpans(element) {
 				var spans = element.find('span.nanospell-typo');
