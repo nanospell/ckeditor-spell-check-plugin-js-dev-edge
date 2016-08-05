@@ -44,7 +44,8 @@
 		START_SPELLCHECK_ON: 'startSpellCheckOn',
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
-		START_MARK_TYPOS: 'startMarkTypos'
+		START_MARK_TYPOS: 'startMarkTypos',
+		SPELLCHECK_COMPLETE: 'spellCheckComplete'
 	};
 
 	function normalizeQuotes(word) {
@@ -491,6 +492,7 @@
 
 				self._spellCheckInProgress = false;
 				self._timer = null;
+				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
 
 			editor.on(EVENT_NAMES.START_MARK_TYPOS, render, self);
