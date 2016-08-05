@@ -357,7 +357,7 @@
 
 					self._spellCheckInProgress = true;
 
-					var words = getAllWords(maxRequest);
+					var words = getAllWords();
 					if (words.length == 0) {
 						render();
 					} else {
@@ -528,7 +528,7 @@
 				return result;
 			}
 
-			function getWords(corpus, max) {
+			function getWordsInCorpus(corpus) {
 				var matches = corpus.match(wordTokenizer());
 				var uniqueWords = [];
 				var words = [];
@@ -540,27 +540,31 @@
 					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
-						if (words.length >= max) {
-							return words;
-						}
+						//if (words.length >= max) {
+						//	return words;
+						//}
 					}
 				}
 				return words;
 			}
 
-			function getAllWords(max) {
-				var range = editor.createRange(),
-					block,
+			function getWordsInRange(range) {
+				var block,
 					fullTextContext = '';
-
-				range.selectNodeContents(editor.editable());
-
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					fullTextContext += block.getText() + ' ';
 				}
 
-				return getWords(fullTextContent, max);
+				return getWordsInCorpus(fullTextContent, max);
+			}
+
+			function getAllWords() {
+				var range = editor.createRange();
+
+				range.selectNodeContents(editor.editable());
+
+				return getWordsInRange(range);
 			}
 
 			function addPersonal(word) {
