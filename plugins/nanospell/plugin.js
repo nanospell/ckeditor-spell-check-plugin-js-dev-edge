@@ -77,11 +77,11 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-				// tables and list items can get a bit weird with getNextParagraph()
-				// for example causing list item descendants to be included as part of the original list item
-				// and also individually as their own paragraph-like elements
-				(path.blockLimit ? path.blockLimit.equals(startNode): true) && // check we don't enter another block-like element
-				(path.block ? path.block.equals(startNode): true); // check we don't enter nested blocks (special list case since it's not considered a limit)
+					// tables and list items can get a bit weird with getNextParagraph()
+					// for example causing list item descendants to be included as part of the original list item
+					// and also individually as their own paragraph-like elements
+				(path.blockLimit ? path.blockLimit.equals(startNode) : true) && // check we don't enter another block-like element
+				(path.block ? path.block.equals(startNode) : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
 			return condition;
 		}
@@ -544,7 +544,7 @@
 			}
 
 			/*
-			Given some text, get the unique words in it that we don't have a spellcheck status for
+			 Given some text, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function getWordsInCorpus(corpus) {
 				var matches = corpus.match(wordTokenizer());
@@ -567,7 +567,7 @@
 			}
 
 			/*
-			for a given range, get the unique words in it that we don't have a spellcheck status for
+			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function getWordsInRange(range) {
 				var block,
@@ -581,7 +581,7 @@
 			}
 
 			/*
-			for the entire document, get the unique words in it that we don't have a spellcheck status for
+			 for the entire document, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function getAllWords() {
 				var range = editor.createRange();
