@@ -14,6 +14,9 @@
 		setUp: function () {
 			this.server = sinon.fakeServer.create();
 			this.server.respondImmediately = true;
+
+			// for these tests we don't really care that much about the
+			// mock data, just that it returns something vaguely resembling it
 			var suggestions = {
 				"result": {
 					"asdf": ["abba"],
@@ -30,7 +33,7 @@
 		tearDown: function () {
 			this.server.restore();
 		},
-		'test event fires spellCheckComplete when done': function () {
+		'test it emits events when going through the spellcheck cycle': function () {
 			var bot = this.editorBot,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,

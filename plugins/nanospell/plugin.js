@@ -543,6 +543,9 @@
 				return result;
 			}
 
+			/*
+			Given some text, get the unique words in it that we don't have a spellcheck status for
+			 */
 			function getWordsInCorpus(corpus) {
 				var matches = corpus.match(wordTokenizer());
 				var uniqueWords = [];
@@ -563,6 +566,9 @@
 				return words;
 			}
 
+			/*
+			for a given range, get the unique words in it that we don't have a spellcheck status for
+			 */
 			function getWordsInRange(range) {
 				var block,
 					fullTextContext = '';
@@ -574,6 +580,9 @@
 				return getWordsInCorpus(fullTextContext);
 			}
 
+			/*
+			for the entire document, get the unique words in it that we don't have a spellcheck status for
+			 */
 			function getAllWords() {
 				var range = editor.createRange();
 
