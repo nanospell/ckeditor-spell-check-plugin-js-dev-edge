@@ -42,6 +42,7 @@
 	var DEFAULT_DELAY = 50;
 	var EVENT_NAMES = {
 		START_SPELLCHECK_ON: 'startSpellCheckOn',
+		START_SCAN_ALL_WORDS: 'startScanAllWords',
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
 		START_MARK_TYPOS: 'startMarkTypos'
@@ -463,7 +464,6 @@
 						spellcache[word] = true;
 					}
 				}
-				render();
 			}
 
 			function resolveAjaxHandler() {
