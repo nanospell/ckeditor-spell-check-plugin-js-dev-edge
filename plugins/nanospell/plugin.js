@@ -42,7 +42,6 @@
 	var DEFAULT_DELAY = 50;
 	var EVENT_NAMES = {
 		START_SPELLCHECK_ON: 'startSpellCheckOn',
-		START_SCAN_ALL_WORDS: 'startScanAllWords',
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
 		START_MARK_TYPOS: 'startMarkTypos'
@@ -339,7 +338,7 @@
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_ON);
 				commandIsActive = true;
 
-				startSpellCheckTimer(DEFAULT_DELAY);
+				startSpellCheckTimer(DEFAULT_DELAY, null);
 			}
 
 			function stop() {
@@ -348,24 +347,35 @@
 				clearAllSpellCheckingSpans(editor.editable());
 			}
 
-			function checkNow() {
+			function checkNow(root) {
 				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					self._timer = null;
-					startSpellCheckTimer(DEFAULT_DELAY);
+					startSpellCheckTimer(DEFAULT_DELAY, root);
 					return;
 				}
 				if (commandIsActive) {
 
 					self._spellCheckInProgress = true;
 
-					var words = getAllWords();
-					if (words.length == 0) {
-						editor.fire(EVENT_NAMES.START_MARK_TYPOS);
-					} else {
-						editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
-					}
+					editor.fire(EVENT_NAMES.START_SCAN_WORDS);
 				}
 			}
+
+			function scanWords(event) {
+				var words;
+				if (event.data) {
+					// TODO this would be the case where an element is passed in, we don't handle it
+				} else {
+					words = getAllWords();
+				}
+				if (words.length == 0) {
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
+				} else {
+					editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
+				}
+			}
+
+			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
 
 			function elementAtCursor() {
 				if (!editor.getSelection()) {
@@ -602,17 +612,18 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			function startSpellCheckTimer(delay) {
+			function startSpellCheckTimer(delay, root) {
 				if (self._timer !== null) {
 				} else {
-					self._timer = setTimeout(checkNow, delay);
+					self._timer = setTimeout(checkNow, delay, root);
 				}
 			}
 
 			function triggerSpelling(immediate) {
 				//only recheck when the user pauses typing
 				if (selectionCollapsed()) {
-					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay)
+					// TODO later on, we'll want to properly pass in the root element being worked on.
+					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay, null);
 				}
 			}
 
