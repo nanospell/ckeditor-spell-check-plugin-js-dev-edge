@@ -475,9 +475,7 @@
 				clearAllSpellCheckingSpans(editor.editable());
 				self.markAllTypos(editor);
 				editor.getSelection().selectBookmarks(bookmarks);
-
-				editor.fire('SpellcheckStart');
-				editor.nanospellstarted = true;
+				
 				self._spellCheckInProgress = false;
 				self._timer = null;
 			}
