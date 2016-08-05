@@ -357,7 +357,7 @@
 
 					self._spellCheckInProgress = true;
 
-					var words = getWords(editor.document.$.body, maxRequest);
+					var words = getAllWords(maxRequest);
 					if (words.length == 0) {
 						render();
 					} else {
@@ -529,18 +529,7 @@
 			}
 
 			function getWords(corpus, max) {
-				var range = editor.createRange(),
-					block,
-					fullTextContext = '';
-
-				range.selectNodeContents(editor.editable());
-
-				var iterator = range.createIterator();
-				while (( block = iterator.getNextParagraph() )) {
-					fullTextContext += block.getText() + ' ';
-				}
-
-				var matches = fullTextContext.match(wordTokenizer());
+				var matches = corpus.match(wordTokenizer());
 				var uniqueWords = [];
 				var words = [];
 				if (!matches) {
@@ -557,6 +546,21 @@
 					}
 				}
 				return words;
+			}
+
+			function getAllWords(max) {
+				var range = editor.createRange(),
+					block,
+					fullTextContext = '';
+
+				range.selectNodeContents(editor.editable());
+
+				var iterator = range.createIterator();
+				while (( block = iterator.getNextParagraph() )) {
+					fullTextContext += block.getText() + ' ';
+				}
+
+				return getWords(fullTextContent, max);
 			}
 
 			function addPersonal(word) {
@@ -581,7 +585,6 @@
 			}
 
 			function unwrapTypoSpan(span) {
-
 				span.remove(true);
 			}
 
