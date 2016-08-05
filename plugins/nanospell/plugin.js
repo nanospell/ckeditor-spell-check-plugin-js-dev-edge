@@ -569,7 +569,7 @@
 					fullTextContext += block.getText() + ' ';
 				}
 
-				return getWordsInCorpus(fullTextContent, max);
+				return getWordsInCorpus(fullTextContext);
 			}
 
 			function getAllWords() {
