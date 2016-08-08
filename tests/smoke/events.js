@@ -60,7 +60,7 @@
 		var observer = {events: []};
 
 		function stdObserver(evt) {
-			observer.events.push(evt.name);
+			observer.events.push(evt);
 		}
 
 		editor.on('startSpellCheckOn', stdObserver);
@@ -76,7 +76,7 @@
 				'Events and expected length should be the same. Actual events:\n' + observer.events);
 
 			for (var i = 0; i < events.length; i++) {
-				assert.areSame(expected[i], events[i]);
+				assert.areSame(expected[i], events[i].name);
 			}
 		};
 

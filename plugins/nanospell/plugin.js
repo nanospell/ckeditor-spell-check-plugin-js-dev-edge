@@ -367,15 +367,20 @@
 			function scanWords(event) {
 				var words,
 					root = event.data;
-				//if (event.data) {
-				//	// TODO this would be the case where an element is passed in, we don't handle it
-				//} else {
+				if (root) {
+					var range = editor.createRange();
+					range.selectNodeContents(root);
+					words = getWordsInRange(range);
+				} else {
 					words = getAllWords();
-				//}
+				}
 				if (words.length == 0) {
 					editor.fire(EVENT_NAMES.START_MARK_TYPOS, root);
 				} else {
-					editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
+					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
+						words: words,
+						root: root
+					});
 				}
 			}
 
@@ -409,7 +414,7 @@
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
 				if (spellCheckSpan) {
-					var bookmarks = editor.getSelection().createBookmarks();
+					var bookmarks = editor.getSelection().createBookmarks(true);
 					unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
@@ -422,11 +427,12 @@
 			}
 
 			function send(event) {
-				var words = event.data;
+				var words = event.data.words;
+				var root = event.data.root;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, root);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -488,13 +494,14 @@
 			}
 
 			function render(event) {
-				var bookmarks = editor.getSelection().createBookmarks(),
+				var bookmarks = editor.getSelection().createBookmarks(true),
 					root = event.data;
-				clearAllSpellCheckingSpans(editor.editable());
 
 				if (!root) {
+					clearAllSpellCheckingSpans(editor.editable());
 					self.markAllTypos(editor);
 				} else {
+					clearAllSpellCheckingSpans(root);
 					var range = editor.createRange();
 
 					range.selectNodeContents(root);
