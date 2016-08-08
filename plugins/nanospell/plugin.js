@@ -360,19 +360,20 @@
 
 					self._spellCheckInProgress = true;
 
-					editor.fire(EVENT_NAMES.START_SCAN_WORDS);
+					editor.fire(EVENT_NAMES.START_SCAN_WORDS, root);
 				}
 			}
 
 			function scanWords(event) {
-				var words;
-				if (event.data) {
-					// TODO this would be the case where an element is passed in, we don't handle it
-				} else {
+				var words,
+					root = event.data;
+				//if (event.data) {
+				//	// TODO this would be the case where an element is passed in, we don't handle it
+				//} else {
 					words = getAllWords();
-				}
+				//}
 				if (words.length == 0) {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, root);
 				} else {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
 				}
@@ -413,7 +414,7 @@
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
-				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)))
+				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)), target)
 			}
 
 			function isSpellCheckSpan(node) {
@@ -487,9 +488,18 @@
 			}
 
 			function render(event) {
-				var bookmarks = editor.getSelection().createBookmarks();
+				var bookmarks = editor.getSelection().createBookmarks(),
+					root = event.data;
 				clearAllSpellCheckingSpans(editor.editable());
-				self.markAllTypos(editor);
+
+				if (!root) {
+					self.markAllTypos(editor);
+				} else {
+					var range = editor.createRange();
+
+					range.selectNodeContents(root);
+					self.markTyposInRange(editor, range);
+				}
 				editor.getSelection().selectBookmarks(bookmarks);
 
 				self._spellCheckInProgress = false;
@@ -629,11 +639,10 @@
 				}
 			}
 
-			function triggerSpelling(immediate) {
+			function triggerSpelling(immediate, target) {
 				//only recheck when the user pauses typing
 				if (selectionCollapsed()) {
-					// TODO later on, we'll want to properly pass in the root element being worked on.
-					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay, null);
+					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay, target);
 				}
 			}
 
