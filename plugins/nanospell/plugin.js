@@ -73,13 +73,15 @@
 
 			var path = new CKEDITOR.dom.elementPath(node, startNode);
 
+			// tables and list items can get a bit weird with getNextParagraph()
+			// for example causing list item descendants to be included as part of the original list item
+			// and also individually as their own paragraph-like elements
+			// hence why the below condition is a bit complicated.
+
 			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-					// tables and list items can get a bit weird with getNextParagraph()
-					// for example causing list item descendants to be included as part of the original list item
-					// and also individually as their own paragraph-like elements
 				(path.blockLimit ? path.blockLimit.equals(startNode) : true) && // check we don't enter another block-like element
 				(path.block ? path.block.equals(startNode) : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
@@ -558,9 +560,6 @@
 					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
-						//if (words.length >= max) {
-						//	return words;
-						//}
 					}
 				}
 				return words;
