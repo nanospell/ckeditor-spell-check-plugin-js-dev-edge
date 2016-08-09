@@ -16,7 +16,7 @@
 			this.server.respondImmediately = true;
 
 			// for these tests we don't really care that much about the
-			// mock data, just that it returns something vaguely resembling it
+			// mock data, just that it returns something vaguely resembling the server call
 			var suggestions = {
 				"result": {
 					"asdf": ["abba"],
@@ -61,15 +61,19 @@
 				// first run
 				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
 
-				observer = observeSpellCheckEvents(editor),
+				// make a new observer to clear the events
+
+				observer = observeSpellCheckEvents(editor);
 
 				resumeAfter(editor, 'spellCheckComplete', function () {
 					var secondParagraph = editor.editable().getChild(1);
 
-					// no ajax callr equired on the second one, since words are repeats.
+					// no ajax call required on the second run, since words are repeats.
 					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
 					observer.assertRootIs(secondParagraph);
 				});
+
+				// press the spacebar
 
 				editor.editable().fire('keydown', new CKEDITOR.dom.event({
 					keyCode: 32,
@@ -77,6 +81,7 @@
 					shiftKey: false
 				}));
 
+				// wait for spellcheck to fire after the spacebar
 				wait();
 
 			});
