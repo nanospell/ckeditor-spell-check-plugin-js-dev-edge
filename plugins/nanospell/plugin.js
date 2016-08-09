@@ -350,31 +350,37 @@
 				clearAllSpellCheckingSpans(editor.editable());
 			}
 
-			function checkNow(root) {
+			function checkNow(rootElement) {
 				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					self._timer = null;
-					startSpellCheckTimer(DEFAULT_DELAY, root);
+					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
 					return;
 				}
 				if (commandIsActive) {
 
 					self._spellCheckInProgress = true;
 
-					editor.fire(EVENT_NAMES.START_SCAN_WORDS);
+					editor.fire(EVENT_NAMES.START_SCAN_WORDS, rootElement);
 				}
 			}
 
 			function scanWords(event) {
-				var words;
-				if (event.data) {
-					// TODO this would be the case where an element is passed in, we don't handle it
+				var words,
+					rootElement = event.data;
+				if (rootElement) {
+					var range = editor.createRange();
+					range.selectNodeContents(rootElement);
+					words = getWordsInRange(range);
 				} else {
 					words = getAllWords();
 				}
 				if (words.length == 0) {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
 				} else {
-					editor.fire(EVENT_NAMES.START_CHECK_WORDS, words);
+					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
+						words: words,
+						root: rootElement
+					});
 				}
 			}
 
@@ -408,12 +414,12 @@
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
 				if (spellCheckSpan) {
-					var bookmarks = editor.getSelection().createBookmarks();
+					var bookmarks = editor.getSelection().createBookmarks(true);
 					unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
-				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)))
+				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)), target)
 			}
 
 			function isSpellCheckSpan(node) {
@@ -421,11 +427,12 @@
 			}
 
 			function send(event) {
-				var words = event.data;
+				var words = event.data.words;
+				var rootElement = event.data.root;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -487,9 +494,19 @@
 			}
 
 			function render(event) {
-				var bookmarks = editor.getSelection().createBookmarks();
-				clearAllSpellCheckingSpans(editor.editable());
-				self.markAllTypos(editor);
+				var bookmarks = editor.getSelection().createBookmarks(true),
+					rootElement = event.data;
+
+				if (!rootElement) {
+					clearAllSpellCheckingSpans(editor.editable());
+					self.markAllTypos(editor);
+				} else {
+					clearAllSpellCheckingSpans(rootElement);
+					var range = editor.createRange();
+
+					range.selectNodeContents(rootElement);
+					self.markTyposInRange(editor, range);
+				}
 				editor.getSelection().selectBookmarks(bookmarks);
 
 				self._spellCheckInProgress = false;
@@ -622,18 +639,17 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			function startSpellCheckTimer(delay, root) {
+			function startSpellCheckTimer(delay, rootElement) {
 				if (self._timer !== null) {
 				} else {
-					self._timer = setTimeout(checkNow, delay, root);
+					self._timer = setTimeout(checkNow, delay, rootElement);
 				}
 			}
 
-			function triggerSpelling(immediate) {
+			function triggerSpelling(immediate, target) {
 				//only recheck when the user pauses typing
 				if (selectionCollapsed()) {
-					// TODO later on, we'll want to properly pass in the root element being worked on.
-					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay, null);
+					startSpellCheckTimer(immediate ? DEFAULT_DELAY : spellDelay, target);
 				}
 			}
 

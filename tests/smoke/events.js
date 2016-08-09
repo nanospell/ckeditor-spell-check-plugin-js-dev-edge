@@ -16,7 +16,7 @@
 			this.server.respondImmediately = true;
 
 			// for these tests we don't really care that much about the
-			// mock data, just that it returns something vaguely resembling it
+			// mock data, just that it returns something vaguely resembling the server call
 			var suggestions = {
 				"result": {
 					"asdf": ["abba"],
@@ -47,7 +47,46 @@
 
 				wait();
 			});
+		},
+		'test future spellchecks only check the current element': function() {
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				starterHtml = '<p>asdf jkl dzxda</p><p>asdf jkl^</p>';
 
+			bot.setHtmlWithSelection(starterHtml);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				// first run
+				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
+
+				// make a new observer to clear the events
+
+				observer = observeSpellCheckEvents(editor);
+
+				resumeAfter(editor, 'spellCheckComplete', function () {
+					var secondParagraph = editor.editable().getChild(1);
+
+					// no ajax call required on the second run, since words are repeats.
+					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+					observer.assertRootIs(secondParagraph);
+				});
+
+				// press the spacebar
+
+				editor.editable().fire('keydown', new CKEDITOR.dom.event({
+					keyCode: 32,
+					ctrlKey: false,
+					shiftKey: false
+				}));
+
+				// wait for spellcheck to fire after the spacebar
+				wait();
+
+			});
+
+			wait();
 		}
 	});
 
@@ -60,7 +99,7 @@
 		var observer = {events: []};
 
 		function stdObserver(evt) {
-			observer.events.push(evt.name);
+			observer.events.push(evt);
 		}
 
 		editor.on('startSpellCheckOn', stdObserver);
@@ -76,7 +115,25 @@
 				'Events and expected length should be the same. Actual events:\n' + observer.events);
 
 			for (var i = 0; i < events.length; i++) {
-				assert.areSame(expected[i], events[i]);
+				assert.areSame(expected[i], events[i].name);
+			}
+		};
+
+		observer.assertRootIs = function (expectedRoot) {
+			var events = observer.events,
+				event,
+				i,
+				root;
+
+			for (i=0, event=events[i]; i<events.length; i++) {
+				if (event.name === 'spellCheckComplete') {
+					continue;
+				} else if (event.name === 'startCheckWordsAjax') {
+					root = event.data.root;
+				} else {
+					root = event.data;
+				}
+				assert.isTrue(root.equals(expectedRoot));
 			}
 		};
 
