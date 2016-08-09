@@ -350,36 +350,36 @@
 				clearAllSpellCheckingSpans(editor.editable());
 			}
 
-			function checkNow(root) {
+			function checkNow(rootElement) {
 				if (!selectionCollapsed() || self._spellCheckInProgress) {
 					self._timer = null;
-					startSpellCheckTimer(DEFAULT_DELAY, root);
+					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
 					return;
 				}
 				if (commandIsActive) {
 
 					self._spellCheckInProgress = true;
 
-					editor.fire(EVENT_NAMES.START_SCAN_WORDS, root);
+					editor.fire(EVENT_NAMES.START_SCAN_WORDS, rootElement);
 				}
 			}
 
 			function scanWords(event) {
 				var words,
-					root = event.data;
-				if (root) {
+					rootElement = event.data;
+				if (rootElement) {
 					var range = editor.createRange();
-					range.selectNodeContents(root);
+					range.selectNodeContents(rootElement);
 					words = getWordsInRange(range);
 				} else {
 					words = getAllWords();
 				}
 				if (words.length == 0) {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, root);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
 				} else {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
-						root: root
+						root: rootElement
 					});
 				}
 			}
@@ -428,11 +428,11 @@
 
 			function send(event) {
 				var words = event.data.words;
-				var root = event.data.root;
+				var rootElement = event.data.root;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, root);
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -495,16 +495,16 @@
 
 			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks(true),
-					root = event.data;
+					rootElement = event.data;
 
-				if (!root) {
+				if (!rootElement) {
 					clearAllSpellCheckingSpans(editor.editable());
 					self.markAllTypos(editor);
 				} else {
-					clearAllSpellCheckingSpans(root);
+					clearAllSpellCheckingSpans(rootElement);
 					var range = editor.createRange();
 
-					range.selectNodeContents(root);
+					range.selectNodeContents(rootElement);
 					self.markTyposInRange(editor, range);
 				}
 				editor.getSelection().selectBookmarks(bookmarks);
@@ -639,10 +639,10 @@
 				return editor.getSelection().getSelectedText().length == 0;
 			}
 
-			function startSpellCheckTimer(delay, root) {
+			function startSpellCheckTimer(delay, rootElement) {
 				if (self._timer !== null) {
 				} else {
-					self._timer = setTimeout(checkNow, delay, root);
+					self._timer = setTimeout(checkNow, delay, rootElement);
 				}
 			}
 
