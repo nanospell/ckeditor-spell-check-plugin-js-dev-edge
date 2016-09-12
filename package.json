@@ -4,7 +4,7 @@
   "description": "Nanospell plugin for ckeditor ",
   "main": "bender server run",
   "scripts": {
-    "test": "bender server run"
+    "test": "bender run"
   },
   "repository": {
     "type": "git",
