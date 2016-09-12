@@ -6,7 +6,10 @@
 (function () {
 	bender.editor = {
 		config: {
-			enterMode: CKEDITOR.ENTER_P
+			enterMode: CKEDITOR.ENTER_P,
+			nanospell: {
+				autostart: false
+			}
 		}
 	};
 
@@ -32,6 +35,7 @@
 		},
 		tearDown: function () {
 			this.server.restore();
+			this.editorBot.editor.execCommand('nanospell');
 		},
 		'test it emits events when going through the spellcheck cycle': function () {
 			var bot = this.editorBot,
@@ -45,6 +49,8 @@
 					observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"])
 				});
 
+				editor.execCommand('nanospell');
+
 				wait();
 			});
 		},
@@ -53,9 +59,7 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<p>asdf jkl dzxda</p><p>asdf jkl^</p>';
-
-			bot.setHtmlWithSelection(starterHtml);
+				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
 				// first run
@@ -65,14 +69,6 @@
 
 				observer = observeSpellCheckEvents(editor);
 
-				resumeAfter(editor, 'spellCheckComplete', function () {
-					var secondParagraph = editor.editable().getChild(1);
-
-					// no ajax call required on the second run, since words are repeats.
-					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
-					observer.assertRootIs(secondParagraph);
-				});
-
 				// press the spacebar
 
 				editor.editable().fire('keydown', new CKEDITOR.dom.event({
@@ -81,11 +77,21 @@
 					shiftKey: false
 				}));
 
+				resumeAfter(editor, 'spellCheckComplete', function () {
+					var secondParagraph = editor.editable().getChild(1);
+
+					// no ajax call required on the second run, since words are repeats.
+					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+					observer.assertRootIs(secondParagraph);
+				});
+
 				// wait for spellcheck to fire after the spacebar
 				wait();
 
 			});
 
+			bot.setHtmlWithSelection(starterHtml);
+			editor.execCommand('nanospell');
 			wait();
 		}
 	});
