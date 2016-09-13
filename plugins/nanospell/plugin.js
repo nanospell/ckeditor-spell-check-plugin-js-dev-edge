@@ -410,12 +410,26 @@
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
 				if (spellCheckSpan) {
+					target = findNearestParentBlock(target);
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
 				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)), target)
+			}
+
+			function findNearestParentBlock(element) {
+				var elementPath = new CKEDITOR.dom.elementPath(element),
+					elements = elementPath.elements,
+					i;
+
+				for (i in elements) {
+					var name = elements[i].getName();
+					if (CKEDITOR.dtd.$block[name]) {
+						return elements[i];
+					}
+				}
 			}
 
 			function isSpellCheckSpan(node) {
