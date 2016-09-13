@@ -67,7 +67,7 @@
 				// if the entire suite is run
 				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
 
-			resumeAfter(editor, 'spellCheckComplete', function () {
+			function triggerSecondParagraphSpellcheck() {
 				// first run
 				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
 
@@ -83,18 +83,21 @@
 					shiftKey: false
 				}));
 
-				resumeAfter(editor, 'spellCheckComplete', function () {
-					var secondParagraph = editor.editable().getChild(1);
-
-					// no ajax call required on the second run, since words are repeats.
-					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
-					observer.assertRootIs(secondParagraph);
-				});
+				resumeAfter(editor, 'spellCheckComplete', assertNoAjaxCallOnSecondParagraph);
 
 				// wait for second spellcheck to fire after the spacebar
 				wait();
+			}
 
-			});
+			function assertNoAjaxCallOnSecondParagraph() {
+				var secondParagraph = editor.editable().getChild(1);
+
+				// no ajax call required on the second run, since words are repeats.
+				observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+				observer.assertRootIs(secondParagraph);
+			}
+
+			resumeAfter(editor, 'spellCheckComplete', triggerSecondParagraphSpellcheck);
 
 			bot.setHtmlWithSelection(starterHtml);
 
