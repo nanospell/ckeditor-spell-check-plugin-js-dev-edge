@@ -6,7 +6,10 @@
 (function () {
 	bender.editor = {
 		config: {
-			enterMode: CKEDITOR.ENTER_P
+			enterMode: CKEDITOR.ENTER_P,
+			nanospell: {
+				autostart: false
+			}
 		}
 	};
 
@@ -32,6 +35,9 @@
 		},
 		tearDown: function () {
 			this.server.restore();
+			// toggle spellcheck off.  (we probably should have a separate command for starting and stopping)
+			// instead of just toggling.
+			this.editorBot.editor.execCommand('nanospell');
 		},
 		'test it emits events when going through the spellcheck cycle': function () {
 			var bot = this.editorBot,
@@ -45,6 +51,9 @@
 					observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"])
 				});
 
+				// start spellcheck
+				editor.execCommand('nanospell');
+
 				wait();
 			});
 		},
@@ -53,25 +62,18 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<p>asdf jkl dzxda</p><p>asdf jkl^</p>';
+				// TODO - add a helper API to clear cached suggestions
+				// this requires one unique word over the previous test
+				// if the entire suite is run
+				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
 
-			bot.setHtmlWithSelection(starterHtml);
-
-			resumeAfter(editor, 'spellCheckComplete', function () {
+			function triggerSecondParagraphSpellcheck() {
 				// first run
 				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
 
 				// make a new observer to clear the events
 
 				observer = observeSpellCheckEvents(editor);
-
-				resumeAfter(editor, 'spellCheckComplete', function () {
-					var secondParagraph = editor.editable().getChild(1);
-
-					// no ajax call required on the second run, since words are repeats.
-					observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
-					observer.assertRootIs(secondParagraph);
-				});
 
 				// press the spacebar
 
@@ -81,11 +83,27 @@
 					shiftKey: false
 				}));
 
-				// wait for spellcheck to fire after the spacebar
+				resumeAfter(editor, 'spellCheckComplete', assertNoAjaxCallOnSecondParagraph);
+
+				// wait for second spellcheck to fire after the spacebar
 				wait();
+			}
 
-			});
+			function assertNoAjaxCallOnSecondParagraph() {
+				var secondParagraph = editor.editable().getChild(1);
 
+				// no ajax call required on the second run, since words are repeats.
+				observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+				observer.assertRootIs(secondParagraph);
+			}
+
+			resumeAfter(editor, 'spellCheckComplete', triggerSecondParagraphSpellcheck);
+
+			bot.setHtmlWithSelection(starterHtml);
+
+			// start spellcheck after the html has been set
+			editor.execCommand('nanospell');
+			// wait for the first spellcheck
 			wait();
 		}
 	});
