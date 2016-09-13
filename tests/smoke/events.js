@@ -48,7 +48,7 @@
 
 			bot.setData(starterHtml, function () {
 				resumeAfter(editor, 'spellCheckComplete', function () {
-					observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"])
+					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"])
 				});
 
 				// start spellcheck
@@ -65,11 +65,13 @@
 				// TODO - add a helper API to clear cached suggestions
 				// this requires one unique word over the previous test
 				// if the entire suite is run
-				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
+				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf ndskn jkl^</p>';
 
 			function triggerSecondParagraphSpellcheck() {
-				// first run
-				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
+				// first run checks the whole document.  Since the spellcheck first
+				// splits the document into blocks, all events other than
+				// "startScanWords" will be fired twice.
+				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 				// make a new observer to clear the events
 
@@ -93,7 +95,7 @@
 				var secondParagraph = editor.editable().getChild(1);
 
 				// no ajax call required on the second run, since words are repeats.
-				observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+				observer.assert(["spellCheckComplete", "startRender", "startScanWords"]);
 				observer.assertRootIs(secondParagraph);
 			}
 
@@ -123,7 +125,7 @@
 		editor.on('startSpellCheckOn', stdObserver);
 		editor.on('startScanWords', stdObserver);
 		editor.on('startCheckWordsAjax', stdObserver);
-		editor.on('startMarkTypos', stdObserver);
+		editor.on('startRender', stdObserver);
 		editor.on('spellCheckComplete', stdObserver);
 
 		observer.assert = function (expected) {
