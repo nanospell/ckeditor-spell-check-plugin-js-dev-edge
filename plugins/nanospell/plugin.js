@@ -355,7 +355,9 @@
 			}
 
 			function checkNow(rootElement) {
-				if (!selectionCollapsed()) {
+				rootElement = rootElement || editor.editable();
+
+				if (!selectionCollapsed() || spellCheckInProgress(rootElement)) {
 					self._timer = null;
 					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
 					return;
@@ -368,7 +370,7 @@
 
 			function scanWords(event) {
 				var words,
-					rootElement = event.data || editor.editable(),
+					rootElement = event.data,
 					range = editor.createRange();
 
 				range.selectNodeContents(rootElement);
@@ -590,18 +592,13 @@
 				var block;
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
-					if (!spellCheckInProgress(block)) {
-						block.setCustomData('spellCheckInProgress', true);
-						var unknownWords = getUnknownWords(block.getText());
-						startCheckOrMark(unknownWords, block);
-					}
-					else {
-						setTimeout(checkNow, DEFAULT_DELAY, block);
-					}
+					block.setCustomData('spellCheckInProgress', true);
+					var unknownWords = getUnknownWords(block.getText());
+					startCheckOrMarkWords(unknownWords, block);
 				}
 			}
 
-			function startCheckOrMark(words, rootElement) {
+			function startCheckOrMarkWords(words, rootElement) {
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
