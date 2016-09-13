@@ -44,7 +44,7 @@
 		START_SPELLCHECK_ON: 'startSpellCheckOn',
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
-		START_MARK_TYPOS: 'startMarkTypos',
+		START_RENDER: 'startRender',
 		SPELLCHECK_COMPLETE: 'spellCheckComplete'
 	};
 
@@ -421,7 +421,7 @@
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
+					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -503,7 +503,7 @@
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
 
-			editor.on(EVENT_NAMES.START_MARK_TYPOS, render, self);
+			editor.on(EVENT_NAMES.START_RENDER, render, self);
 
 			function clearAllSpellCheckingSpans(element) {
 				var spans = element.find('span.nanospell-typo');
@@ -591,7 +591,7 @@
 					});
 				}
 				else {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
+					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
 				}
 			}
 
