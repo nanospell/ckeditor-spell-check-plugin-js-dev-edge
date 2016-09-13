@@ -515,6 +515,7 @@
 
 				editor.getSelection().selectBookmarks(bookmarks);
 
+				rootElement.setCustomData('spellCheckInProgress', false);
 				self._spellCheckInProgress = false;
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
@@ -595,8 +596,14 @@
 				var block;
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
-					var unknownWords = getUnknownWords(block.getText());
-					startCheckOrMark(unknownWords, block);
+					if (!spellCheckInProgress(block)) {
+						block.setCustomData('spellCheckInProgress', true);
+						var unknownWords = getUnknownWords(block.getText());
+						startCheckOrMark(unknownWords, block);
+					}
+					else {
+						setTimeout(checkNow, DEFAULT_DELAY, block);
+					}
 				}
 			}
 
@@ -610,6 +617,19 @@
 				else {
 					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
 				}
+			}
+
+			function spellCheckInProgress(element) {
+				var elementPath = new CKEDITOR.dom.elementPath(element),
+					elements = elementPath.elements,
+					i;
+
+				for (i in elements) {
+					if (elements[i].getCustomData('spellCheckInProgress') === true) {
+						return true;
+					}
+				}
+				return false;
 			}
 
 			function addPersonal(word) {
