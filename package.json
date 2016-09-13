@@ -4,7 +4,7 @@
   "description": "Nanospell plugin for ckeditor ",
   "main": "bender server run",
   "scripts": {
-    "test": "bender server run"
+    "test": "bender run"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "ckeditor": "^4.5.10"
   },
   "devDependencies": {
+    "benderjs-cli": "^0.1.1",
     "benderjs-jquery": "^0.3.0",
     "benderjs-sinon": "^0.3.1",
     "benderjs-yui": "^0.3.3"

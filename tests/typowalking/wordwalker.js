@@ -13,6 +13,11 @@ bender.test( {
 	setUp: function() {
 		this.editor = this.editorBot.editor;
 	},
+	_should: {
+		ignore: {
+			'test walking nested list wrapped with text nodes': true
+		}
+	},
 	getWordsWithWordWalker: function(root) {
 		var editor = this.editorBot.editor,
 			range,

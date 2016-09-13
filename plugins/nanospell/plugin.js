@@ -347,6 +347,13 @@
 			function stop() {
 				editor.getCommand('nanospell').setState(CKEDITOR.TRISTATE_OFF);
 				commandIsActive = false;
+
+				// clear any currently queued spellcheck
+
+				if (self._timer) {
+					clearTimeout(self._timer);
+					self._timer = null;
+				}
 				clearAllSpellCheckingSpans(editor.editable());
 			}
 
