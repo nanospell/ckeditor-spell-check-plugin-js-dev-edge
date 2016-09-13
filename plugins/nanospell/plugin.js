@@ -366,22 +366,11 @@
 
 			function scanWords(event) {
 				var words,
-					rootElement = event.data;
-				if (rootElement) {
-					var range = editor.createRange();
-					range.selectNodeContents(rootElement);
-					words = getWordsInRange(range);
-				} else {
-					words = getAllWords();
-				}
-				if (words.length == 0) {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
-				} else {
-					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
-						words: words,
-						root: rootElement
-					});
-				}
+					rootElement = event.data || editor.editable(),
+					range = editor.createRange();
+
+				range.selectNodeContents(rootElement);
+				scanWordsInRange(range);
 			}
 
 			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
@@ -585,26 +574,17 @@
 			/*
 			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
-			function getWordsInRange(range) {
-				var block,
-					fullTextContext = '';
+			function scanWordsInRange(range) {
+				var block;
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
-					fullTextContext += block.getText() + ' ';
+					var words = getWordsInCorpus(block.getText());
+					// TODO: add event handler to call START_MARK_TYPOS if no words returned
+					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
+						words: words,
+						root: block
+					});
 				}
-
-				return getWordsInCorpus(fullTextContext);
-			}
-
-			/*
-			 for the entire document, get the unique words in it that we don't have a spellcheck status for
-			 */
-			function getAllWords() {
-				var range = editor.createRange();
-
-				range.selectNodeContents(editor.editable());
-
-				return getWordsInRange(range);
 			}
 
 			function addPersonal(word) {
