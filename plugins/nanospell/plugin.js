@@ -484,18 +484,14 @@
 
 			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data;
+					rootElement = event.data,
+					range = editor.createRange();
 
-				if (!rootElement) {
-					clearAllSpellCheckingSpans(editor.editable());
-					self.markAllTypos(editor);
-				} else {
-					clearAllSpellCheckingSpans(rootElement);
-					var range = editor.createRange();
+				clearAllSpellCheckingSpans(rootElement);
 
-					range.selectNodeContents(rootElement);
-					self.markTyposInRange(editor, range);
-				}
+				range.selectNodeContents(rootElement);
+				self.markTyposInRange(editor, range);
+
 				editor.getSelection().selectBookmarks(bookmarks);
 
 				self._spellCheckInProgress = false;
