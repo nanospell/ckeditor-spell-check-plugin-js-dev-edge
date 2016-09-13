@@ -554,8 +554,8 @@
 			/*
 			 Given some text, get the unique words in it that we don't have a spellcheck status for
 			 */
-			function getWordsInCorpus(corpus) {
-				var matches = corpus.match(wordTokenizer());
+			function getUnknownWords(text) {
+				var matches = text.match(wordTokenizer());
 				var uniqueWords = [];
 				var words = [];
 				if (!matches) {
@@ -578,10 +578,10 @@
 				var block;
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
-					var words = getWordsInCorpus(block.getText());
+					var unknownWords = getUnknownWords(block.getText());
 					// TODO: add event handler to call START_MARK_TYPOS if no words returned
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
-						words: words,
+						words: unknownWords,
 						root: block
 					});
 				}
