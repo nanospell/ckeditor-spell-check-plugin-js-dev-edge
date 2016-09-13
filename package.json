@@ -26,6 +26,7 @@
     "ckeditor": "^4.5.10"
   },
   "devDependencies": {
+    "benderjs-cli": "^0.1.1",
     "benderjs-jquery": "^0.3.0",
     "benderjs-sinon": "^0.3.1",
     "benderjs-yui": "^0.3.3"
