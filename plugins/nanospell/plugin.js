@@ -579,11 +579,19 @@
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					var unknownWords = getUnknownWords(block.getText());
-					// TODO: add event handler to call START_MARK_TYPOS if no words returned
+					startCheckOrMark(unknownWords, block);
+				}
+			}
+
+			function startCheckOrMark(words, rootElement) {
+				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
-						words: unknownWords,
-						root: block
+						words: words,
+						root: rootElement
 					});
+				}
+				else {
+					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
 				}
 			}
 
