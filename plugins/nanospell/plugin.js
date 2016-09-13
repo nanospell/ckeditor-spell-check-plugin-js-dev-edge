@@ -415,7 +415,7 @@
 				return node.getName() === 'span' && node.hasClass('nanospell-typo');
 			}
 
-			function send(event) {
+			function checkWords(event) {
 				var words = event.data.words;
 				var rootElement = event.data.root;
 				var url = resolveAjaxHandler();
@@ -427,7 +427,7 @@
 				rpc(url, data, callback);
 			}
 
-			editor.on(EVENT_NAMES.START_CHECK_WORDS, send, self);
+			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			function wordsToRPC(words, lang) {
 				return '{"id":"c0","method":"spellcheck","params":{"lang":"' + lang + '","words":["' + words.join('","') + '"]}}'
