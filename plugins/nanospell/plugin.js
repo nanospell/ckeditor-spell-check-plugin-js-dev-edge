@@ -177,9 +177,6 @@
 		init: function (editor) {
 			var self = this;
 
-			// a lock to prevent multiple spellchecks
-			this._spellCheckInProgress = false;
-
 			// store the current timer
 			this._timer = null;
 
@@ -358,14 +355,12 @@
 			}
 
 			function checkNow(rootElement) {
-				if (!selectionCollapsed() || self._spellCheckInProgress) {
+				if (!selectionCollapsed()) {
 					self._timer = null;
 					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
 					return;
 				}
 				if (commandIsActive) {
-
-					self._spellCheckInProgress = true;
 
 					editor.fire(EVENT_NAMES.START_SCAN_WORDS, rootElement);
 				}
@@ -516,7 +511,6 @@
 				editor.getSelection().selectBookmarks(bookmarks);
 
 				rootElement.setCustomData('spellCheckInProgress', false);
-				self._spellCheckInProgress = false;
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
