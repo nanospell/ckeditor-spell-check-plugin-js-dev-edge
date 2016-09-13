@@ -35,6 +35,8 @@
 		},
 		tearDown: function () {
 			this.server.restore();
+			// toggle spellcheck off.  (we probably should have a separate command for starting and stopping)
+			// instead of just toggling.
 			this.editorBot.editor.execCommand('nanospell');
 		},
 		'test it emits events when going through the spellcheck cycle': function () {
@@ -49,6 +51,7 @@
 					observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"])
 				});
 
+				// start spellcheck
 				editor.execCommand('nanospell');
 
 				wait();
@@ -59,6 +62,9 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
+				// TODO - add a helper API to clear cached suggestions
+				// this requires one unique word over the previous test
+				// if the entire suite is run
 				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
@@ -85,13 +91,16 @@
 					observer.assertRootIs(secondParagraph);
 				});
 
-				// wait for spellcheck to fire after the spacebar
+				// wait for second spellcheck to fire after the spacebar
 				wait();
 
 			});
 
 			bot.setHtmlWithSelection(starterHtml);
+
+			// start spellcheck after the html has been set
 			editor.execCommand('nanospell');
+			// wait for the first spellcheck
 			wait();
 		}
 	});
