@@ -45,7 +45,8 @@
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
 		START_RENDER: 'startRender',
-		SPELLCHECK_COMPLETE: 'spellCheckComplete'
+		SPELLCHECK_COMPLETE: 'spellCheckComplete',
+		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
 
 	function normalizeQuotes(word) {
@@ -360,6 +361,7 @@
 				if (!selectionCollapsed() || spellCheckInProgress(rootElement)) {
 					self._timer = null;
 					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
+					editor.fire(EVENT_NAMES.SPELLCHECK_ABORT, rootElement);
 					return;
 				}
 				if (commandIsActive) {

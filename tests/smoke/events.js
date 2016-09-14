@@ -107,6 +107,54 @@
 			editor.execCommand('nanospell');
 			// wait for the first spellcheck
 			wait();
+		},
+		'test spellcheck on element does not occur when parent block has spellcheck in progress': function() {
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested^</li></ul></li></ol>';
+
+				bot.setHtmlWithSelection(starterHtml);
+
+				var doc = editor.document,
+				outer = doc.getById('a'),
+				inner = doc.getById('b');
+
+				resumeAfter(editor, 'spellCheckComplete', completeFirstSpellcheck);
+
+				editor.execCommand('nanospell');
+
+				// wait for initial spellcheck to complete
+				wait();
+
+				function completeFirstSpellcheck() {
+
+					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+
+					// set outer li to show that a spellcheck is in progress
+					outer.setCustomData('spellCheckInProgress', true);
+
+					// clear observer events after initial spellcheck
+					observer = observeSpellCheckEvents(editor);
+
+					// spacebar triggers spellcheck on inner li
+					editor.editable().fire('keydown', new CKEDITOR.dom.event({
+						keyCode: 32,
+						ctrlKey: false,
+						shiftKey: false
+					}));
+
+					resumeAfter(editor, 'spellCheckAbort', abortedInnerSpellcheck);
+
+					wait();
+
+				};
+
+				function abortedInnerSpellcheck() {
+					observer.assertRootIs(inner);
+					observer.assert(["spellCheckAbort"]);
+				}
 		}
 	});
 
@@ -127,6 +175,7 @@
 		editor.on('startCheckWordsAjax', stdObserver);
 		editor.on('startRender', stdObserver);
 		editor.on('spellCheckComplete', stdObserver);
+		editor.on('spellCheckAbort', stdObserver);
 
 		observer.assert = function (expected) {
 			var events = observer.events;
