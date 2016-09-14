@@ -145,7 +145,8 @@
 				i,
 				root;
 
-			for (i=0, event=events[i]; i<events.length; i++) {
+			for (i=0; i<events.length; i++) {
+				event = events[i];
 				if (event.name === 'spellCheckComplete') {
 					continue;
 				} else if (event.name === 'startCheckWordsAjax') {
