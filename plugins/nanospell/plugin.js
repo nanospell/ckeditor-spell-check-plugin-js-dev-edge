@@ -418,10 +418,9 @@
 
 			function findNearestParentBlock(element) {
 				var elementPath = new CKEDITOR.dom.elementPath(element),
-					elements = elementPath.elements,
-					i;
+					elements = elementPath.elements;
 
-				for (i in elements) {
+				for (var i = 0; i < elements.length; i++) {
 					var name = elements[i].getName();
 					if (CKEDITOR.dtd.$block[name]) {
 						return elements[i];
@@ -612,10 +611,9 @@
 
 			function spellCheckInProgress(element) {
 				var elementPath = new CKEDITOR.dom.elementPath(element),
-					elements = elementPath.elements,
-					i;
+					elements = elementPath.elements;
 
-				for (i in elements) {
+				for (var i = 0; i < elements.length; i++) {
 					if (elements[i].getCustomData('spellCheckInProgress') === true) {
 						return true;
 					}
