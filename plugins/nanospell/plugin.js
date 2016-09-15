@@ -44,8 +44,9 @@
 		START_SPELLCHECK_ON: 'startSpellCheckOn',
 		START_SCAN_WORDS: 'startScanWords',
 		START_CHECK_WORDS: 'startCheckWordsAjax',
-		START_MARK_TYPOS: 'startMarkTypos',
-		SPELLCHECK_COMPLETE: 'spellCheckComplete'
+		START_RENDER: 'startRender',
+		SPELLCHECK_COMPLETE: 'spellCheckComplete',
+		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
 
 	function normalizeQuotes(word) {
@@ -176,9 +177,6 @@
 		icons: 'nanospell',
 		init: function (editor) {
 			var self = this;
-
-			// a lock to prevent multiple spellchecks
-			this._spellCheckInProgress = false;
 
 			// store the current timer
 			this._timer = null;
@@ -358,14 +356,15 @@
 			}
 
 			function checkNow(rootElement) {
-				if (!selectionCollapsed() || self._spellCheckInProgress) {
+				rootElement = rootElement || editor.editable();
+
+				if (!selectionCollapsed() || spellCheckInProgress(rootElement)) {
 					self._timer = null;
 					startSpellCheckTimer(DEFAULT_DELAY, rootElement);
+					editor.fire(EVENT_NAMES.SPELLCHECK_ABORT, rootElement);
 					return;
 				}
 				if (commandIsActive) {
-
-					self._spellCheckInProgress = true;
 
 					editor.fire(EVENT_NAMES.START_SCAN_WORDS, rootElement);
 				}
@@ -373,22 +372,11 @@
 
 			function scanWords(event) {
 				var words,
-					rootElement = event.data;
-				if (rootElement) {
-					var range = editor.createRange();
-					range.selectNodeContents(rootElement);
-					words = getWordsInRange(range);
-				} else {
-					words = getAllWords();
-				}
-				if (words.length == 0) {
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
-				} else {
-					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
-						words: words,
-						root: rootElement
-					});
-				}
+					rootElement = event.data,
+					range = editor.createRange();
+
+				range.selectNodeContents(rootElement);
+				scanWordsInRange(range);
 			}
 
 			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
@@ -421,6 +409,7 @@
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
 				if (spellCheckSpan) {
+					target = findNearestParentBlock(target);
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
@@ -429,23 +418,35 @@
 				triggerSpelling((spellFastAfterSpacebar && (ch8r === CHARCODES.SPACE || ch8r === CHARCODES.LF || ch8r === CHARCODES.CR)), target)
 			}
 
+			function findNearestParentBlock(element) {
+				var elementPath = new CKEDITOR.dom.elementPath(element),
+					elements = elementPath.elements;
+
+				for (var i = 0; i < elements.length; i++) {
+					var name = elements[i].getName();
+					if (CKEDITOR.dtd.$block[name]) {
+						return elements[i];
+					}
+				}
+			}
+
 			function isSpellCheckSpan(node) {
 				return node.getName() === 'span' && node.hasClass('nanospell-typo');
 			}
 
-			function send(event) {
+			function checkWords(event) {
 				var words = event.data.words;
 				var rootElement = event.data.root;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_MARK_TYPOS, rootElement);
+					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
 			}
 
-			editor.on(EVENT_NAMES.START_CHECK_WORDS, send, self);
+			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			function wordsToRPC(words, lang) {
 				return '{"id":"c0","method":"spellcheck","params":{"lang":"' + lang + '","words":["' + words.join('","') + '"]}}'
@@ -502,26 +503,22 @@
 
 			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data;
+					rootElement = event.data,
+					range = editor.createRange();
 
-				if (!rootElement) {
-					clearAllSpellCheckingSpans(editor.editable());
-					self.markAllTypos(editor);
-				} else {
-					clearAllSpellCheckingSpans(rootElement);
-					var range = editor.createRange();
+				clearAllSpellCheckingSpans(rootElement);
 
-					range.selectNodeContents(rootElement);
-					self.markTyposInRange(editor, range);
-				}
+				range.selectNodeContents(rootElement);
+				self.markTyposInRange(editor, range);
+
 				editor.getSelection().selectBookmarks(bookmarks);
 
-				self._spellCheckInProgress = false;
+				rootElement.setCustomData('spellCheckInProgress', false);
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
 
-			editor.on(EVENT_NAMES.START_MARK_TYPOS, render, self);
+			editor.on(EVENT_NAMES.START_RENDER, render, self);
 
 			function clearAllSpellCheckingSpans(element) {
 				var spans = element.find('span.nanospell-typo');
@@ -572,8 +569,8 @@
 			/*
 			 Given some text, get the unique words in it that we don't have a spellcheck status for
 			 */
-			function getWordsInCorpus(corpus) {
-				var matches = corpus.match(wordTokenizer());
+			function getUnknownWords(text) {
+				var matches = text.match(wordTokenizer());
 				var uniqueWords = [];
 				var words = [];
 				if (!matches) {
@@ -592,26 +589,38 @@
 			/*
 			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
-			function getWordsInRange(range) {
-				var block,
-					fullTextContext = '';
+			function scanWordsInRange(range) {
+				var block;
 				var iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
-					fullTextContext += block.getText() + ' ';
+					block.setCustomData('spellCheckInProgress', true);
+					var unknownWords = getUnknownWords(block.getText());
+					startCheckOrMarkWords(unknownWords, block);
 				}
-
-				return getWordsInCorpus(fullTextContext);
 			}
 
-			/*
-			 for the entire document, get the unique words in it that we don't have a spellcheck status for
-			 */
-			function getAllWords() {
-				var range = editor.createRange();
+			function startCheckOrMarkWords(words, rootElement) {
+				if (words.length > 0) {
+					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
+						words: words,
+						root: rootElement
+					});
+				}
+				else {
+					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+				}
+			}
 
-				range.selectNodeContents(editor.editable());
+			function spellCheckInProgress(element) {
+				var elementPath = new CKEDITOR.dom.elementPath(element),
+					elements = elementPath.elements;
 
-				return getWordsInRange(range);
+				for (var i = 0; i < elements.length; i++) {
+					if (elements[i].getCustomData('spellCheckInProgress') === true) {
+						return true;
+					}
+				}
+				return false;
 			}
 
 			function addPersonal(word) {

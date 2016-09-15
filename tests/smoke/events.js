@@ -48,7 +48,7 @@
 
 			bot.setData(starterHtml, function () {
 				resumeAfter(editor, 'spellCheckComplete', function () {
-					observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"])
+					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"])
 				});
 
 				// start spellcheck
@@ -65,11 +65,13 @@
 				// TODO - add a helper API to clear cached suggestions
 				// this requires one unique word over the previous test
 				// if the entire suite is run
-				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf jkl^</p>';
+				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf ndskn jkl^</p>';
 
 			function triggerSecondParagraphSpellcheck() {
-				// first run
-				observer.assert(["spellCheckComplete", "startMarkTypos", "startCheckWordsAjax", "startScanWords"]);
+				// first run checks the whole document.  Since the spellcheck first
+				// splits the document into blocks, all events other than
+				// "startScanWords" will be fired twice.
+				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 				// make a new observer to clear the events
 
@@ -93,7 +95,7 @@
 				var secondParagraph = editor.editable().getChild(1);
 
 				// no ajax call required on the second run, since words are repeats.
-				observer.assert(["spellCheckComplete", "startMarkTypos", "startScanWords"]);
+				observer.assert(["spellCheckComplete", "startRender", "startScanWords"]);
 				observer.assertRootIs(secondParagraph);
 			}
 
@@ -105,6 +107,54 @@
 			editor.execCommand('nanospell');
 			// wait for the first spellcheck
 			wait();
+		},
+		'test spellcheck on element does not occur when parent block has spellcheck in progress': function() {
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested^</li></ul></li></ol>';
+
+				bot.setHtmlWithSelection(starterHtml);
+
+				var doc = editor.document,
+				outer = doc.getById('a'),
+				inner = doc.getById('b');
+
+				resumeAfter(editor, 'spellCheckComplete', completeFirstSpellcheck);
+
+				editor.execCommand('nanospell');
+
+				// wait for initial spellcheck to complete
+				wait();
+
+				function completeFirstSpellcheck() {
+
+					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+
+					// set outer li to show that a spellcheck is in progress
+					outer.setCustomData('spellCheckInProgress', true);
+
+					// clear observer events after initial spellcheck
+					observer = observeSpellCheckEvents(editor);
+
+					// spacebar triggers spellcheck on inner li
+					editor.editable().fire('keydown', new CKEDITOR.dom.event({
+						keyCode: 32,
+						ctrlKey: false,
+						shiftKey: false
+					}));
+
+					resumeAfter(editor, 'spellCheckAbort', abortedInnerSpellcheck);
+
+					wait();
+
+				};
+
+				function abortedInnerSpellcheck() {
+					observer.assertRootIs(inner);
+					observer.assert(["spellCheckAbort"]);
+				}
 		}
 	});
 
@@ -123,8 +173,9 @@
 		editor.on('startSpellCheckOn', stdObserver);
 		editor.on('startScanWords', stdObserver);
 		editor.on('startCheckWordsAjax', stdObserver);
-		editor.on('startMarkTypos', stdObserver);
+		editor.on('startRender', stdObserver);
 		editor.on('spellCheckComplete', stdObserver);
+		editor.on('spellCheckAbort', stdObserver);
 
 		observer.assert = function (expected) {
 			var events = observer.events;
@@ -143,7 +194,8 @@
 				i,
 				root;
 
-			for (i=0, event=events[i]; i<events.length; i++) {
+			for (i=0; i<events.length; i++) {
+				event = events[i];
 				if (event.name === 'spellCheckComplete') {
 					continue;
 				} else if (event.name === 'startCheckWordsAjax') {
