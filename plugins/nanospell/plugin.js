@@ -48,6 +48,7 @@
 		SPELLCHECK_COMPLETE: 'spellCheckComplete',
 		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
+	var BLOCK_REQUEST_LIMIT = 5;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -436,11 +437,14 @@
 
 			function checkWords(event) {
 				var words = event.data.words;
-				var rootElement = event.data.root;
+				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
 					parseRpc(data, words);
-					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+					for (var i = 0; i < blockList.length; i++) {
+						var rootElement = blockList[i];
+						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+					}
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -590,24 +594,37 @@
 			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function scanWordsInRange(range) {
-				var block;
-				var iterator = range.createIterator();
+				var combinedText = '',
+					block,
+					blockList = [],
+					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
-					var unknownWords = getUnknownWords(block.getText());
-					startCheckOrMarkWords(unknownWords, block);
+					combinedText += block.getText() + ' ';
+					blockList.push(block);
+					if (blockList.length === BLOCK_REQUEST_LIMIT) {
+						startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
+						combinedText = '';
+						blockList = [];
+					}
+				}
+				if (blockList.length > 0) {
+					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
 			}
 
-			function startCheckOrMarkWords(words, rootElement) {
+			function startCheckOrMarkWords(words, blockList) {
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
-						root: rootElement
+						blockList: blockList
 					});
 				}
 				else {
-					editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+					for (var i = 0; i < blockList.length; i++){
+						var rootElement = blockList[i];
+						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+					}
 				}
 			}
 
